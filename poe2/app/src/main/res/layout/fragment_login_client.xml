@@ -11,19 +11,34 @@
         android:layout_height="match_parent">
 
         <Button
+            android:id="@+id/btnBiometricLogin"
+            android:layout_width="212dp"
+            android:layout_height="51dp"
+            android:backgroundTint="@color/lightblue"
+            android:text="Biometric Login"
+            android:textColor="@color/black"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.517"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.819" />
+
+        <Button
             android:id="@+id/btnLogin"
-            android:layout_width="158dp"
-            android:layout_height="57dp"
+            android:layout_width="208dp"
+            android:layout_height="50dp"
             android:backgroundTint="@color/lightblue"
             android:text="Login"
             android:textColor="@color/black"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.474"
+            app:layout_constraintHorizontal_bias="0.507"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.704" />
+            app:layout_constraintVertical_bias="0.722" />
 
         <ImageView
             android:id="@+id/iLogo"
@@ -128,9 +143,9 @@
             app:layout_constraintVertical_bias="0.545" />
 
         <com.google.android.gms.common.SignInButton
-            android:id="@+id/sign_in_button"
-            android:layout_width="204dp"
-            android:layout_height="53dp"
+            android:id="@+id/btnGoogleSignIn"
+            android:layout_width="207dp"
+            android:layout_height="52dp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -138,7 +153,7 @@
             app:layout_constraintHorizontal_bias="0.497"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.826" />
+            app:layout_constraintVertical_bias="0.934" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

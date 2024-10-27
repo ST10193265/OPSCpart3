@@ -10,7 +10,7 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.navigation.fragment.findNavController
-import com.example.opsc7312poepart2_code.ui.login_dentist.LoginDentistFragment.Companion.loggedInDentistUserId
+
 import com.example.poe2.R
 
 class MenuClientFragment : Fragment() {
