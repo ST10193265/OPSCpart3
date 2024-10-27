@@ -164,6 +164,9 @@
         <action
             android:id="@+id/action_nav_book_app_client2_to_nav_menu_client"
             app:destination="@id/nav_menu_client" />
+        <action
+            android:id="@+id/action_nav_book_app_client2_to_nav_book_app_client1"
+            app:destination="@id/nav_book_app_client1" />
 
     </fragment>
 

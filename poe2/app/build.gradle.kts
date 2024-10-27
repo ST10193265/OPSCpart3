@@ -144,4 +144,7 @@ dependencies {
 
     implementation ("com.auth0:java-jwt:4.2.1")
 
+    // Biometric library for Android
+    implementation ("androidx.biometric:biometric:1.1.0")
+
 }

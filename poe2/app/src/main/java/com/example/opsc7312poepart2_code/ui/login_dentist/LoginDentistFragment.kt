@@ -9,6 +9,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.poe2.R
@@ -24,6 +26,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.example.opsc7312poepart2_code.ui.BiometricAuthenticator
 import java.security.MessageDigest
 import java.util.*
 
@@ -54,7 +57,7 @@ class LoginDentistFragment : Fragment() {
 
         // Initialize Firebase Database and Auth
         database = FirebaseDatabase.getInstance()
-        dbReference = database.getReference("dentists")
+        dbReference = database.getReference("clients")
         auth = FirebaseAuth.getInstance()
 
         Log.d("LoginClientFragment", "Firebase initialized, Auth and Database setup complete")
@@ -64,13 +67,20 @@ class LoginDentistFragment : Fragment() {
             val username = binding.etxtUsername.text.toString().trim()
             val password = binding.etxtPassword.text.toString().trim()
 
+            Log.d("LoginClientFragment", "Login button clicked")
+
             if (username.isNotEmpty() && password.isNotEmpty()) {
                 Log.d("LoginClientFragment", "Attempting to login user: $username")
                 loginUser(username, password)
             } else {
-                Toast.makeText(requireContext(), "Please enter both username and password.", Toast.LENGTH_SHORT).show()
+                showToast("Please enter both username and password.")
                 Log.d("LoginClientFragment", "Username or password was empty")
             }
+        }
+
+        binding.btnBiometricLogin.setOnClickListener {
+            Log.d("LoginClientFragment", "Biometric login button clicked")
+            initiateBiometricLogin()
         }
 
         // Set the password field to not visible by default
@@ -83,6 +93,7 @@ class LoginDentistFragment : Fragment() {
 
         // Handle Forget Password text click
         binding.txtForgotPassword.setOnClickListener {
+            Log.d("LoginClientFragment", "Forget Password text clicked")
             onForgotPasswordClicked(it)
         }
 
@@ -95,7 +106,8 @@ class LoginDentistFragment : Fragment() {
         mGoogleSignInClient = GoogleSignIn.getClient(requireContext(), gso)
 
         // Bind the Sign-In button and set up a click listener
-        binding.signInButton.setOnClickListener {
+        binding.btnGoogleSignIn.setOnClickListener {
+            Log.d("LoginClientFragment", "Google Sign-In button clicked")
             signIn()
         }
 
@@ -109,6 +121,52 @@ class LoginDentistFragment : Fragment() {
         startActivityForResult(signInIntent, RC_SIGN_IN)
     }
 
+    private fun initiateBiometricLogin() {
+        Log.d("LoginClientFragment", "Initiating biometric login")
+        val biometricAuthenticator = BiometricAuthenticator(requireActivity(), {
+            // On success: Retrieve username from the database
+            val username = binding.etxtUsername.text.toString().trim() // Assuming you can retrieve the username from the UI
+            Log.d("LoginClientFragment", "Biometric authentication successful for user: $username")
+
+            if (username.isNotEmpty()) {
+                // Generate JWT token
+                val jwtToken = generateJwtToken(username)
+                Log.d("LoginClientFragment", "JWT Token generated: $jwtToken")
+                // Proceed to client menu
+                findNavController().navigate(R.id.action_nav_login_dentist_to_nav_menu_dentist)
+            } else {
+                Log.e("LoginClientFragment", "Username is empty after biometric authentication")
+                showToast("Error: Username is required.")
+            }
+        }, { errorMessage ->
+            // Handle errors
+            showToast(errorMessage) // For example, show an error toast
+            Log.e("LoginClientFragment", "Biometric authentication error: $errorMessage")
+        })
+        biometricAuthenticator.authenticate()
+    }
+
+
+    // Generate a JWT token for the logged-in user
+    private fun generateJwtToken(username: String?): String {
+        if (username == null) {
+            Log.d("LoginClientFragment", "Username is null, cannot generate JWT Token")
+            return ""
+        }
+        Log.d("LoginClientFragment", "Generating JWT Token for username: $username")
+        val algorithm = Algorithm.HMAC256("secret") // Use a strong secret in production
+        return JWT.create()
+            .withIssuer("auth0")
+            .withClaim("username", username)
+            .withExpiresAt(Date(System.currentTimeMillis() + 3600000)) // Token expires in 1 hour
+            .sign(algorithm)
+    }
+
+    private fun showToast(message: String) {
+        // Show a Toast message for feedback
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+    }
+
     // Handle the result of Google Sign-In
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -117,12 +175,12 @@ class LoginDentistFragment : Fragment() {
             val task = GoogleSignIn.getSignedInAccountFromIntent(data)
             try {
                 val account = task.getResult(ApiException::class.java)
-                Log.d("LoginClientFragment", "Google Sign-In successful")
-                Toast.makeText(requireContext(), "Sign-in successful.", Toast.LENGTH_SHORT).show()
+                Log.d("LoginClientFragment", "Google Sign-In successful for user: ${account.displayName}")
+                showToast("Sign-in successful.")
                 findNavController().navigate(R.id.action_nav_login_dentist_to_nav_menu_dentist)
             } catch (e: ApiException) {
                 Log.e("LoginClientFragment", "Google Sign-In failed: ${e.statusCode}")
-                Toast.makeText(requireContext(), "Sign-in failed: ${e.statusCode}", Toast.LENGTH_SHORT).show()
+                showToast("Sign-in failed: ${e.statusCode}")
             }
         }
     }
@@ -135,11 +193,13 @@ class LoginDentistFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        Log.d("LoginClientFragment", "Fragment view destroyed")
         _binding = null
     }
 
     // Authenticate the user
     private fun loginUser(username: String, password: String) {
+        Log.d("LoginClientFragment", "Attempting to login user: $username")
         dbReference.orderByChild("username").equalTo(username).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
@@ -156,24 +216,47 @@ class LoginDentistFragment : Fragment() {
                         Log.d("LoginClientFragment", "Password matches for user: $username")
                         loggedInDentistUsername = username
                         getUserIdFromFirebase(username)
-                        val token = generateJwtToken(username) // Generate JWT token
-                        Log.d("LoginClientFragment", "Generated JWT Token for user $username: $token")
-                        Toast.makeText(requireContext(), "Login successful!", Toast.LENGTH_SHORT).show()
+                        showToast("Login successful!")
                         clearFields()
                         findNavController().navigate(R.id.action_nav_login_dentist_to_nav_menu_dentist)
                     } else {
                         Log.d("LoginClientFragment", "Incorrect password for user: $username")
-                        Toast.makeText(requireContext(), "Incorrect password.", Toast.LENGTH_SHORT).show()
+                        showToast("Incorrect password.")
                     }
                 } else {
                     Log.d("LoginClientFragment", "User $username not found in the database")
-                    Toast.makeText(requireContext(), "User not found.", Toast.LENGTH_SHORT).show()
+                    showToast("User not found.")
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Log.e("LoginClientFragment", "Database error during login: ${error.message}")
-                Toast.makeText(requireContext(), "Error: ${error.message}", Toast.LENGTH_SHORT).show()
+                Log.e("LoginClientFragment", "Database error: ${error.message}")
+            }
+        })
+    }
+
+    // Hash the password
+    private fun hashPassword(password: String, salt: ByteArray): String {
+        val saltedPassword = password.toByteArray() + salt
+        val md = MessageDigest.getInstance("SHA-256")
+        return Base64.encodeToString(md.digest(saltedPassword), Base64.DEFAULT)
+    }
+
+    // Get user ID from Firebase
+    private fun getUserIdFromFirebase(username: String) {
+        Log.d("LoginClientFragment", "Fetching user ID for: $username")
+        dbReference.orderByChild("username").equalTo(username).addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.exists()) {
+                    loggedInDentistUserId = snapshot.children.first().key // Store the user ID globally
+                    Log.d("LoginClientFragment", "User ID retrieved: $loggedInDentistUserId")
+                } else {
+                    Log.d("LoginClientFragment", "No user ID found for: $username")
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("LoginClientFragment", "Database error while fetching user ID: ${error.message}")
             }
         })
     }
@@ -184,60 +267,15 @@ class LoginDentistFragment : Fragment() {
         Log.d("LoginClientFragment", "Cleared input fields")
     }
 
-    // Retrieve the user ID from Firebase
-    private fun getUserIdFromFirebase(username: String) {
-        Log.d("LoginClientFragment", "Retrieving user ID for username: $username")
-        dbReference.orderByChild("username").equalTo(username).addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()) {
-                    val userSnapshot = snapshot.children.first()
-                    loggedInDentistUserId = userSnapshot.key
-                    Log.d("LoginClientFragment", "loggedInClientUserId: $loggedInDentistUserId")
-                } else {
-                    Log.d("LoginClientFragment", "User ID not found for username: $username")
-                    Toast.makeText(requireContext(), "User ID not found.", Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("LoginClientFragment", "Error retrieving user ID: ${error.message}")
-                Toast.makeText(requireContext(), "Error retrieving user ID: ${error.message}", Toast.LENGTH_SHORT).show()
-            }
-        })
-    }
-
-    // Hash the password with the provided salt
-    private fun hashPassword(password: String, salt: ByteArray): String {
-        Log.d("LoginClientFragment", "Hashing password with salt")
-        val digest = MessageDigest.getInstance("SHA-256")
-        digest.update(salt)
-        return Base64.encodeToString(digest.digest(password.toByteArray()), Base64.DEFAULT)
-    }
-
-    // Generate a JWT token for the logged-in user
-    private fun generateJwtToken(username: String): String {
-        Log.d("LoginClientFragment", "Generating JWT Token for username: $username")
-        val algorithm = Algorithm.HMAC256("secret") // Use a strong secret in production
-        return JWT.create()
-            .withIssuer("auth0")
-            .withClaim("username", username)
-            .withExpiresAt(Date(System.currentTimeMillis() + 3600000)) // Token expires in 1 hour
-            .sign(algorithm)
-    }
-
     // Toggle password visibility
-    fun togglePasswordVisibility(view: View) {
-        passwordVisible = !passwordVisible
-
-        if (passwordVisible) {
-            binding.etxtPassword.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-            binding.iconViewPassword.setImageResource(R.drawable.visible_icon)
+    private fun togglePasswordVisibility(view: View) {
+        passwordVisible = !passwordVisible // Toggle the password visibility state
+        binding.etxtPassword.inputType = if (passwordVisible) {
+            InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
         } else {
-            binding.etxtPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-            binding.iconViewPassword.setImageResource(R.drawable.visible_icon)
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
         }
-
-        // Ensure the cursor stays at the end after toggling
-        binding.etxtPassword.setSelection(binding.etxtPassword.text.length)
+        binding.etxtPassword.setSelection(binding.etxtPassword.text.length) // Set cursor to the end of the text
+        Log.d("LoginClientFragment", "Password visibility toggled: $passwordVisible")
     }
 }

@@ -1,5 +1,6 @@
 package com.example.poe2.ui.book_appointment_dentist
 
+import com.example.opsc7312poepart2_code.ui.login_dentist.LoginDentistFragment.Companion.loggedInDentistUserId
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -14,7 +15,7 @@ import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import com.applandeo.materialcalendarview.CalendarView
 import com.example.poe2.R
-import com.example.opsc7312poepart2_code.ui.login_dentist.LoginDentistFragment.Companion.loggedInDentistUserId
+
 import java.text.SimpleDateFormat
 import java.util.Locale
 import com.applandeo.materialcalendarview.EventDay
