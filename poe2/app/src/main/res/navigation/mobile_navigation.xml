@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/nav_home">
+
+    <fragment
+        android:id="@+id/nav_home"
+        android:name="com.example.poe2.ui.home.HomeFragment"
+        android:label="@string/menu_home"
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/action_nav_home_to_nav_register_client"
+            app:destination="@id/nav_register_client" />
+        <action
+            android:id="@+id/action_nav_home_to_nav_login_client"
+            app:destination="@id/nav_login_client" />
+
+        <action
+            android:id="@+id/action_nav_home_to_nav_register_dentist"
+            app:destination="@id/nav_register_dentist" />
+        <action
+            android:id="@+id/action_nav_home_to_nav_login_dentist"
+            app:destination="@id/nav_login_dentist" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_forget_password_client"
+        android:name="com.example.opsc7312poepart2_code.ui.forget_password_client.ForgetPasswordClientFragment"
+        android:label="Forget Password - Client"
+        tools:layout="@layout/fragment_forget_password_client">
+        <action
+            android:id="@+id/action_nav_forget_password_client_to_nav_login_client"
+            app:destination="@id/nav_login_client" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_forget_password_dentist"
+        android:name="com.example.opsc7312poepart2_code.ui.forget_password_dentist.ForgetPasswordDentistFragment"
+        android:label="Forget Password - Dentist"
+        tools:layout="@layout/fragment_forget_password_dentist">
+        <action
+            android:id="@+id/action_nav_forget_password_dentist_to_nav_login_dentist"
+            app:destination="@id/nav_login_dentist" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_register_client"
+        android:name="com.example.opsc7312poepart2_code.ui.register_client.RegisterClientFragment"
+        android:label="Register - Client"
+        tools:layout="@layout/fragment_register_client" >
+        <action
+            android:id="@+id/action_nav_register_client_to_nav_login_client"
+            app:destination="@id/nav_login_client" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_register_dentist"
+        android:name="com.example.opsc7312poepart2_code.ui.register_dentist.RegisterDentistFragment"
+        android:label="Register - Dentist"
+        tools:layout="@layout/fragment_register_dentist" >
+        <action
+            android:id="@+id/action_nav_register_dentist_to_nav_login_dentist"
+            app:destination="@id/nav_login_dentist" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_login_dentist"
+        android:name="com.example.opsc7312poepart2_code.ui.login_dentist.LoginDentistFragment"
+        android:label="Login - Dentist"
+        tools:layout="@layout/fragment_login_dentist" >
+        <action
+            android:id="@+id/action_nav_login_dentist_to_nav_menu_dentist"
+            app:destination="@id/nav_menu_dentist" />
+        <action
+            android:id="@+id/action_nav_login_dentist_to_nav_forget_password_dentist"
+            app:destination="@id/nav_forget_password_dentist" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_login_client"
+        android:name="com.example.opsc7312poepart2_code.ui.login_client.LoginClientFragment"
+        android:label="Login - Client"
+        tools:layout="@layout/fragment_login_client" >
+        <action
+            android:id="@+id/action_nav_login_client_to_nav_menu_client"
+            app:destination="@id/nav_menu_client" />
+        <action
+            android:id="@+id/action_nav_login_client_to_nav_forget_password_client"
+            app:destination="@id/nav_forget_password_client" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_menu_client"
+        android:name="com.example.poe2.ui.menu_client.MenuClientFragment"
+        android:label="Menu - Client"
+        tools:layout="@layout/fragment_menu_client" >
+        <action
+            android:id="@+id/action_nav_menu_client_to_nav_login_client"
+            app:destination="@id/nav_login_client" />
+
+        <action
+            android:id="@+id/action_nav_menu_client_to_nav_settings_client"
+            app:destination="@id/nav_settings_client"
+            app:popUpTo="@id/nav_menu_client" />
+
+
+        <action
+            android:id="@+id/action_nav_menu_client_to_nav_login_client1"
+            app:destination="@id/nav_login_client" />
+        <action
+            android:id="@+id/action_nav_menu_client_to_nav_book_app_client1"
+            app:destination="@id/nav_book_app_client1" />
+
+        <action
+            android:id="@+id/action_nav_menu_client_to_nav_calendar_client"
+            app:destination="@id/nav_calendar_client" />
+
+        <action
+            android:id="@+id/action_nav_menu_client_to_nav_notifications_client"
+            app:destination="@id/nav_notifications_client" />
+
+        <action
+            android:id="@+id/action_nav_menu_client_to_nav_maps_client"
+            app:destination="@id/nav_maps_client" />
+
+        <action
+            android:id="@+id/action_nav_menu_client_to_nav_healthzone"
+            app:destination="@id/nav_healthzone" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_settings_client"
+        android:name="com.example.poe2.ui.client_settings.ClientSettingsFragment"
+        android:label="Menu - Settings"
+        tools:layout="@layout/fragment_client_settings" >
+        <action
+            android:id="@+id/action_nav_settings_client_to_nav_menu_client"
+            app:destination="@id/nav_menu_client"  />
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/nav_book_app_client1"
+        android:name="com.example.opsc7312poepart2_code.ui.book_app_client1.BookAppClient1Fragment"
+        android:label="Menu - Book Appointment"
+        tools:layout="@layout/fragment_book_app_client1" >
+        <action
+            android:id="@+id/action_nav_book_app_client1_to_nav_menu_client"
+            app:destination="@id/nav_menu_client" />
+        <action
+            android:id="@+id/action_nav_book_app_client1_to_nav_book_app_client2"
+            app:destination="@id/nav_book_app_client2" />
+
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_book_app_client2"
+        android:name="com.example.opsc7312poepart2_code.ui.book_app_client2.BookAppClient2Fragment"
+        android:label="Menu - Book Appointment"
+        tools:layout="@layout/fragment_book_app_client2" >
+        <action
+            android:id="@+id/action_nav_book_app_client2_to_nav_menu_client"
+            app:destination="@id/nav_menu_client" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_calendar_client"
+        android:name="com.example.poe2.ui.calendar_client.CalendarClientFragment"
+        android:label="Menu - Calendar"
+        tools:layout="@layout/fragment_calendar_client" >
+        <action
+            android:id="@+id/action_nav_calendar_client_to_nav_menu_client"
+            app:destination="@id/nav_menu_client"  />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_notifications_client"
+        android:name="com.example.poe2.ui.notifications_client.NotificationsClientFragment"
+        android:label="Menu - Notifications"
+        tools:layout="@layout/fragment_notifications_client" >
+        <action
+            android:id="@+id/action_nav_notifications_client_to_nav_menu_client"
+            app:destination="@id/nav_menu_client"  />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_maps_client"
+        android:name="com.example.poe2.ui.maps_client.MapsClientFragment"
+        android:label="Menu - Maps"
+        tools:layout="@layout/fragment_maps_client" >
+        <action
+            android:id="@+id/action_nav_maps_client_to_nav_menu_client"
+            app:destination="@id/nav_menu_client"  />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_healthzone"
+        android:name="com.example.poe2.ui.healthzone.HealthzoneFragment"
+        android:label="Menu - Healthzone"
+        tools:layout="@layout/fragment_healthzone" >
+        <action
+            android:id="@+id/action_nav_healthzone_to_nav_menu_client"
+            app:destination="@id/nav_menu_client"  />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_menu_dentist"
+        android:name="com.example.poe2.ui.menu_dentist.MenuDentistFragment"
+        android:label="Menu - Dentist"
+        tools:layout="@layout/fragment_menu_dentist" >
+
+        <action
+            android:id="@+id/action_nav_menu_dentist_to_nav_login_dentist"
+            app:destination="@id/nav_login_dentist" />
+
+        <action
+            android:id="@+id/action_nav_menu_dentist_to_nav_notifications_dentist"
+            app:destination="@id/nav_notifications_dentist" />
+        <action
+            android:id="@+id/action_nav_menu_dentist_to_nav_book_appointment_dentist"
+            app:destination="@id/nav_book_appointment_dentist" />
+        <action
+            android:id="@+id/action_nav_menu_dentist_to_nav_settings_dentist"
+            app:destination="@id/nav_settings_dentist" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_notifications_dentist"
+        android:name="com.example.poe2.ui.notifications_dentist.NotificationsDentistFragment"
+        android:label="Menu - Notifications"
+        tools:layout="@layout/fragment_notifications_dentist" >
+        <action
+            android:id="@+id/action_nav_notifications_dentist_to_nav_menu_dentist"
+            app:destination="@id/nav_menu_dentist" />
+
+    </fragment>
+    <fragment
+        android:id="@+id/nav_book_appointment_dentist"
+        android:name="com.example.poe2.ui.book_appointment_dentist.BookAppointmentDentistFragment"
+        android:label="Menu - Book Appointment"
+        tools:layout="@layout/fragment_book_appointment_dentist" >
+        <action
+            android:id="@+id/action_nav_book_appointment_dentist_to_nav_menu_dentist"
+            app:destination="@id/nav_menu_dentist" />
+
+    </fragment>
+    <fragment
+        android:id="@+id/nav_settings_dentist"
+        android:name="com.example.poe2.ui.settings_dentist.SettingsDentistFragment"
+        android:label="Menu - Settings"
+        tools:layout="@layout/fragment_settings_dentist" >
+        <action
+            android:id="@+id/action_nav_settings_dentist_to_nav_menu_dentist"
+            app:destination="@id/nav_menu_dentist" />
+
+    </fragment>
+
+
+
+</navigation>

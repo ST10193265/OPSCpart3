@@ -1,0 +1,7 @@
+# Existing entries
+node_modules/
+*.local
+.env
+
+# Secret files
+/BackendAPI/functions/Keys/serviceKeyN.json

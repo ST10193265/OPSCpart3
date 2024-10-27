@@ -1,0 +1,46 @@
+<resources>
+    <string name="app_name">Dental Diary</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Dental Diary</string>
+    <string name="nav_header_subtitle">Dentistry App</string>
+    <string name="nav_header_desc">Navigation header</string>
+
+
+    <string name="menu_home">Home</string>
+ <string name="change_language">Change Language:</string>
+    <string name="change_address">Change Address:</string>
+    <string name="settings" translatable="false">Settings</string>
+    <string name="change_distance_units">Change Distance Units:</string>
+    <string name="change_radius">Change Distance Radius (units):</string>
+    <string name="change_email">Change Email:</string>
+    <string name="change_phone">Change Phone Number:</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="search_dentist">Search the name of a dentist:</string>
+
+    // strings for the healthzone
+    <string name="wvFloss"> How to Floss.</string>
+    <string name="wvDentalTrouble"> Early signs of Dental Trouble.</string>
+    <string name="wvXrays"> Are Dental X-rays bad?</string>
+    <string name="wvFillings"> How do Fillings Work?</string>
+    <string name="book_appointments">Book Appointments</string>
+    <string name="view_appointments">View Appointments</string>
+    <string name="notifications">Notifications</string>
+    <string name="setting_menu">Settings</string>
+    <string name="maps">Maps</string>
+    <string name="health_zone">Health Zone</string>
+    <string name="manage_appointments">Manage Appointments</string>
+
+    <string name="webclientid" translatable="false">227493496295-l4ogpcg7ru66oeeikmtfhf1ab8gvsklu.apps.googleusercontent.com</string>
+    <string name="feature_to_be_implemented">FEATURE TO BE IMPLEMENTED</string>
+    <string name="username">Username:</string>
+    <string name="new_password">New Password:</string>
+    <string name="email">Email:</string>
+
+    // strings for book appointments
+    <string name="appointments">Book Appointment:</string>
+    <string name="date">Please select a date:</string>
+    <string name="time">Available Time:</string>
+    <string name="description">Description:</string>
+</resources>
