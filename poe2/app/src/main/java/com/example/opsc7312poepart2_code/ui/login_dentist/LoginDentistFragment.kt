@@ -57,7 +57,7 @@ class LoginDentistFragment : Fragment() {
 
         // Initialize Firebase Database and Auth
         database = FirebaseDatabase.getInstance()
-        dbReference = database.getReference("clients")
+        dbReference = database.getReference("dentists")
         auth = FirebaseAuth.getInstance()
 
         Log.d("LoginClientFragment", "Firebase initialized, Auth and Database setup complete")
@@ -237,9 +237,9 @@ class LoginDentistFragment : Fragment() {
 
     // Hash the password
     private fun hashPassword(password: String, salt: ByteArray): String {
-        val saltedPassword = password.toByteArray() + salt
-        val md = MessageDigest.getInstance("SHA-256")
-        return Base64.encodeToString(md.digest(saltedPassword), Base64.DEFAULT)
+        val digest = MessageDigest.getInstance("SHA-256")
+        digest.update(salt)
+        return Base64.encodeToString(digest.digest(password.toByteArray()), Base64.DEFAULT)
     }
 
     // Get user ID from Firebase

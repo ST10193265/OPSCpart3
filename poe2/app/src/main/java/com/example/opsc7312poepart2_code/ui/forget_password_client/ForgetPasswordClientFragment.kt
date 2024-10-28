@@ -112,7 +112,7 @@ class ForgetPasswordClientFragment : Fragment() {
                         userSnapshot.ref.child("isPasswordUpdated").setValue(true) // Set the updated flag to true
 
                         Toast.makeText(requireContext(), "Password reset successfully!", Toast.LENGTH_SHORT).show()
-                        findNavController().navigate(R.id.action_nav_forget_password_dentist_to_nav_login_dentist)
+                        findNavController().navigate(R.id.action_nav_forget_password_client_to_nav_login_client)
                     } else {
                         Toast.makeText(requireContext(), "Email does not match the username.", Toast.LENGTH_SHORT).show()
                         Log.d("ForgetPasswordDentistFragment", "Email does not match for username: $username")

@@ -198,7 +198,6 @@ class LoginClientFragment : Fragment() {
         _binding = null
     }
 
-    // Authenticate the user
     private fun loginUser(username: String, password: String) {
         Log.d("LoginClientFragment", "Attempting to login user: $username")
         dbReference.orderByChild("username").equalTo(username).addListenerForSingleValueEvent(object : ValueEventListener {
@@ -207,10 +206,15 @@ class LoginClientFragment : Fragment() {
                     Log.d("LoginClientFragment", "User $username found in the database")
                     val userSnapshot = snapshot.children.first()
                     val storedHashedPassword = userSnapshot.child("password").getValue(String::class.java) ?: ""
-                    val storedSalt = userSnapshot.child("salt").getValue(String::class.java)?.let { Base64.decode(it, Base64.DEFAULT) } ?: ByteArray(0)
+                    val storedSaltString = userSnapshot.child("salt").getValue(String::class.java) ?: ""
+                    val storedSalt = Base64.decode(storedSaltString, Base64.DEFAULT)
 
                     // Hash the entered password
                     val hashedPassword = hashPassword(password, storedSalt)
+
+                    // Log both hashed passwords for debugging
+                    Log.d("LoginClientFragment", "Stored Password Hash: $storedHashedPassword")
+                    Log.d("LoginClientFragment", "Entered Password Hash: $hashedPassword")
 
                     // Compare hashed password with the stored password
                     if (hashedPassword == storedHashedPassword) {
@@ -236,12 +240,14 @@ class LoginClientFragment : Fragment() {
         })
     }
 
-    // Hash the password
+
+    // Hash the password with salt
     private fun hashPassword(password: String, salt: ByteArray): String {
-        val saltedPassword = password.toByteArray() + salt
-        val md = MessageDigest.getInstance("SHA-256")
-        return Base64.encodeToString(md.digest(saltedPassword), Base64.DEFAULT)
+        val digest = MessageDigest.getInstance("SHA-256")
+        digest.update(salt)
+        return Base64.encodeToString(digest.digest(password.toByteArray()), Base64.DEFAULT)
     }
+
 
     // Get user ID from Firebase
     private fun getUserIdFromFirebase(username: String) {
