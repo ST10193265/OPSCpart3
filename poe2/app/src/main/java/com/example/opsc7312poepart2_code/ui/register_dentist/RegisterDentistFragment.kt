@@ -73,7 +73,7 @@ class RegisterDentistFragment : Fragment() {
         }
 
         // Setup autocomplete for address
-//        setupAutoCompleteForAddress()
+        setupAutoCompleteForAddress()
 
         return binding.root
     }
@@ -205,5 +205,52 @@ class RegisterDentistFragment : Fragment() {
         Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
     }
 
+ private fun setupAutoCompleteForAddress() {
+        val autoCompleteAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, placeSuggestions)
+        binding.etxtAddress.setAdapter(autoCompleteAdapter)
+
+        binding.etxtAddress.setOnItemClickListener { parent, _, position, _ ->
+           val selectedPlace = parent.getItemAtPosition(position) as String
+            isAddressValid = true
+            findPlace(selectedPlace)
+        }
+
+        binding.etxtAddress.addTextChangedListener(object : TextWatcher {
+           override fun afterTextChanged(s: Editable?) {
+                if (!s.isNullOrEmpty()) {
+                    fetchPlaceSuggestions(s.toString())
+                    isAddressValid = false
+                }
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+    }
+
+    private fun fetchPlaceSuggestions(query: String) {
+        val request = FindAutocompletePredictionsRequest.builder()
+            .setQuery(query)
+            .build()
+
+       placesClient.findAutocompletePredictions(request).addOnSuccessListener { response ->
+            placeSuggestions = response.autocompletePredictions.map { it.getFullText(null).toString() }
+            val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, placeSuggestions)
+            binding.etxtAddress.setAdapter(adapter)
+           adapter.notifyDataSetChanged()
+        }
+    }
+
+    private fun findPlace(placeName: String) {
+        val geocoder = Geocoder(requireContext())
+        val addressList = geocoder.getFromLocationName(placeName, 1)
+        if (addressList != null) {
+            if (addressList.isNotEmpty()) {
+                val address = addressList[0]
+                destinationLatLng = LatLng(address.latitude, address.longitude)
+                // Handle the location in the map if necessary
+            }
+        }
+    }
 }
 
