@@ -42,6 +42,7 @@
     <string name="date">Kies asseblief n datum:</string>
     <string name="time">Beskikbare Tyd:</string>
     <string name="description">Beskrywing:</string>
-
+    <string name="appointmentsFilter">(Lys gefiltreer volgens gebruiker se instellings afstandsvoorkeur.)</string>
+    <string name="appointmentsMaps">Sien tandartse op kaart (Nie gefiltreer nie).</string>
 
 </resources>
