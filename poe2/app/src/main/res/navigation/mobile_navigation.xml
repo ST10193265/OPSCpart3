@@ -152,9 +152,12 @@
         <action
             android:id="@+id/action_nav_book_app_client1_to_nav_book_app_client2"
             app:destination="@id/nav_book_app_client2" />
-
+        <action
+            android:id="@+id/action_nav_book_app_client1_to_nav_dentist_maps"
+            app:destination="@id/nav_dentist_maps" />
 
     </fragment>
+
 
     <fragment
         android:id="@+id/nav_book_app_client2"
@@ -263,6 +266,16 @@
 
     </fragment>
 
+    <fragment
+        android:id="@+id/nav_dentist_maps"
+        android:name="com.example.opsc7312poepart2_code.ui.clients_dentist_map.ClientDentistMapFragment"
+        android:label="Clients Dentist Map"
+        tools:layout="@layout/fragment_dentist_map" >
+        <action
+            android:id="@+id/action_nav_dentist_maps_to_nav_book_app_client1"
+            app:destination="@id/nav_book_app_client1" />
+
+    </fragment>
 
 
 </navigation>

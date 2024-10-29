@@ -101,7 +101,7 @@ class ClientSettingsFragment : Fragment() {
         // Source URL: https://developer.android.com/guide/topics/ui/controls/spinner
         // Contributors: Android Developers
         // Contributor Profile: https://developer.android.com/profile/u/0/AndroidDevelopers
-        val distanceRadius = arrayOf("No Limit", "1 km", "5 km", "10 km", "20 km")
+        val distanceRadius = arrayOf("No Limit", "1", "5", "10", "20", "30")
         val distanceRadiusAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, distanceRadius)
         spinnerDistanceRadius.adapter = distanceRadiusAdapter
         spinnerDistanceRadius.setSelection(0)

@@ -248,7 +248,7 @@ class RegisterDentistFragment : Fragment() {
             if (addressList.isNotEmpty()) {
                 val address = addressList[0]
                 destinationLatLng = LatLng(address.latitude, address.longitude)
-                // Handle the location in the map if necessary
+
             }
         }
     }
