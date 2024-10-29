@@ -250,6 +250,9 @@
         <action
             android:id="@+id/action_nav_book_appointment_dentist_to_nav_menu_dentist"
             app:destination="@id/nav_menu_dentist" />
+        <action
+            android:id="@+id/action_nav_book_appointment_dentist_to_nav_book_time_off_dentist"
+            app:destination="@id/nav_book_time_off_dentist" />
 
     </fragment>
     <fragment

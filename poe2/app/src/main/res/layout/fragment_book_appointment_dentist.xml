@@ -47,20 +47,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/ibtnHome" />
 
-    <ListView
-        android:id="@+id/appointmentListView1"
-        android:layout_width="391dp"
-        android:layout_height="129dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/calendarView1"
-        app:layout_constraintVertical_bias="1.0"
-        android:textSize="18sp"
-        android:foregroundTint="@color/black" />
+        <ListView
+            android:id="@+id/appointmentListView1"
+            android:layout_width="391dp"
+            android:layout_height="129dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            android:foregroundTint="@color/black"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/calendarView1"
+            app:layout_constraintVertical_bias="0.238" />
 
-    <TextView
+        <TextView
         android:id="@+id/txtAppName"
         android:layout_width="128dp"
         android:layout_height="84dp"
@@ -75,6 +75,16 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0"
         />
+
+        <Button
+            android:id="@+id/btnBookTimeOff"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="24dp"
+            android:layout_marginBottom="16dp"
+            android:text="Book Time Off"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

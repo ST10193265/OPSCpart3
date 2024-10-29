@@ -11,6 +11,11 @@ const {
   getAllAppointments,
   getConfirmedAppointments,
 } = require('../controller/appointmentController'); // Ensure these are correctly imported
+const {
+  bookTimeOff,
+  getDentistTimeOff,
+  cancelTimeOff,
+} = require('../controller/timeoffController');
 const router = express.Router();
 const { protect } = require('../middleware/authMiddleware'); // Middleware to protect routes
 
@@ -43,5 +48,10 @@ router.get('/myappointments', protect, getAllAppointmentsForPatient);
 
 // Route to get all appointments for all patients (any status)
 router.get('/allappointments', protect, getAllAppointments);
+
+// New time-off routes
+router.post('/timeoff', protect, bookTimeOff);
+router.get('/timeoff/dentist', protect, getDentistTimeOff);
+router.delete('/timeoff/:timeOffId', protect, cancelTimeOff);
 
 module.exports = router; 

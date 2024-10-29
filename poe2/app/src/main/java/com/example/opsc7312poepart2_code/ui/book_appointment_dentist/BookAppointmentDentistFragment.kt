@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ListView
 import android.widget.Toast
@@ -66,6 +67,12 @@ class BookAppointmentDentistFragment : Fragment() {
         } else {
             // Show a toast message if the dentist is not logged in
             Toast.makeText(requireContext(), "Dentist not logged in.", Toast.LENGTH_SHORT).show()
+        }
+
+        // Initialize the Book Time Off button
+        val btnBookTimeOff: Button = view.findViewById(R.id.btnBookTimeOff)
+        btnBookTimeOff.setOnClickListener {
+            findNavController().navigate(R.id.action_nav_book_appointment_dentist_to_nav_book_time_off_dentist)
         }
 
         return view // Return the inflated view
