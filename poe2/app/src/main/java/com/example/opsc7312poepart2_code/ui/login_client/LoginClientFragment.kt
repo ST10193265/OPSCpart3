@@ -154,13 +154,21 @@ class LoginClientFragment : Fragment() {
             Log.d("LoginClientFragment", "Username is null, cannot generate JWT Token")
             return ""
         }
+
         Log.d("LoginClientFragment", "Generating JWT Token for username: $username")
+
         val algorithm = Algorithm.HMAC256("secret") // Use a strong secret in production
-        return JWT.create()
+        val expirationTime = System.currentTimeMillis() + 3600000
+        val token = JWT.create()
             .withIssuer("auth0")
             .withClaim("username", username)
-            .withExpiresAt(Date(System.currentTimeMillis() + 3600000)) // Token expires in 1 hour
+            .withExpiresAt(Date(expirationTime)) // Token expires in 1 hour
             .sign(algorithm)
+
+        Log.d("LoginClientFragment", "JWT Token generated successfully for $username")
+        Log.d("LoginClientFragment", "Token expiration time: $expirationTime (1 hour from generation)")
+        Log.d("LoginClientFragment", "Generated JWT Token: $token")
+        return token
     }
 
     private fun showToast(message: String) {
@@ -221,6 +229,7 @@ class LoginClientFragment : Fragment() {
                         Log.d("LoginClientFragment", "Password matches for user: $username")
                         loggedInClientUsername = username
                         getUserIdFromFirebase(username)
+                        generateJwtToken(username)
                         showToast("Login successful!")
                         clearFields()
                         findNavController().navigate(R.id.action_nav_login_client_to_nav_menu_client)
