@@ -24,6 +24,11 @@
                                 <LayoutPositions />
                               </value>
                             </entry>
+                            <entry key="action_nav_book_app_client1_to_nav_dentist_maps">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
                             <entry key="action_nav_book_app_client1_to_nav_menu_client">
                               <value>
                                 <LayoutPositions />
@@ -71,7 +76,33 @@
                         </option>
                         <option name="myPositions">
                           <map>
+                            <entry key="action_nav_book_appointment_dentist_to_nav_book_time_off_dentist">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
                             <entry key="action_nav_book_appointment_dentist_to_nav_menu_dentist">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
+                          </map>
+                        </option>
+                      </LayoutPositions>
+                    </value>
+                  </entry>
+                  <entry key="nav_book_time_off_dentist">
+                    <value>
+                      <LayoutPositions>
+                        <option name="myPosition">
+                          <Point>
+                            <option name="x" value="12" />
+                            <option name="y" value="12" />
+                          </Point>
+                        </option>
+                        <option name="myPositions">
+                          <map>
+                            <entry key="action_nav_book_time_off_to_nav_menu_dentist">
                               <value>
                                 <LayoutPositions />
                               </value>
@@ -93,6 +124,27 @@
                         <option name="myPositions">
                           <map>
                             <entry key="action_nav_calendar_client_to_nav_menu_client">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
+                          </map>
+                        </option>
+                      </LayoutPositions>
+                    </value>
+                  </entry>
+                  <entry key="nav_dentist_maps">
+                    <value>
+                      <LayoutPositions>
+                        <option name="myPosition">
+                          <Point>
+                            <option name="x" value="32" />
+                            <option name="y" value="12" />
+                          </Point>
+                        </option>
+                        <option name="myPositions">
+                          <map>
+                            <entry key="action_nav_dentist_maps_to_nav_book_app_client1">
                               <value>
                                 <LayoutPositions />
                               </value>

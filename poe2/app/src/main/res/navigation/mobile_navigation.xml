@@ -152,9 +152,12 @@
         <action
             android:id="@+id/action_nav_book_app_client1_to_nav_book_app_client2"
             app:destination="@id/nav_book_app_client2" />
-
+        <action
+            android:id="@+id/action_nav_book_app_client1_to_nav_dentist_maps"
+            app:destination="@id/nav_dentist_maps" />
 
     </fragment>
+
 
     <fragment
         android:id="@+id/nav_book_app_client2"
@@ -266,6 +269,26 @@
 
     </fragment>
 
+    <fragment
+        android:id="@+id/nav_dentist_maps"
+        android:name="com.example.opsc7312poepart2_code.ui.clients_dentist_map.ClientDentistMapFragment"
+        android:label="Clients Dentist Map"
+        tools:layout="@layout/fragment_dentist_map" >
+        <action
+            android:id="@+id/action_nav_dentist_maps_to_nav_book_app_client1"
+            app:destination="@id/nav_book_app_client1" />
 
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_book_time_off_dentist"
+        android:name="com.example.opsc7312poepart2_code.ui.book_time_off_dentist.BookTimeOffDentistFragment"
+        android:label="Book Time Off - Dentist"
+        tools:layout="@layout/book_time_off">
+
+        <action
+            android:id="@+id/action_nav_book_time_off_to_nav_menu_dentist"
+            app:destination="@id/nav_menu_dentist" />
+    </fragment>
 
 </navigation>

@@ -43,4 +43,6 @@
     <string name="date">Please select a date:</string>
     <string name="time">Available Time:</string>
     <string name="description">Description:</string>
+    <string name="appointmentsFilter">(List filtered according to user settings distance preference)</string>
+    <string name="appointmentsMaps">View dentists on map (Unfiltered)</string>
 </resources>

@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.poe2.R
 import com.google.firebase.database.*
+import java.text.SimpleDateFormat
 import java.util.*
 
 class BookTimeOffDentistFragment : Fragment() {
@@ -143,13 +144,24 @@ class BookTimeOffDentistFragment : Fragment() {
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     var hasConflicts = false
-                    for (appointmentSnapshot in snapshot.children) {
-                        val appointmentDate = appointmentSnapshot.child("date").getValue(String::class.java)
-                        if (appointmentDate != null && isDateInRange(appointmentDate)) {
-                            hasConflicts = true
-                            break
+
+                    // Parse start and end dates
+                    val startDate = parseDateString(selectedStartDate!!)
+                    val endDate = parseDateString(selectedEndDate!!)
+
+                    if (startDate != null && endDate != null) {
+                        for (appointmentSnapshot in snapshot.children) {
+                            val appointmentDate = appointmentSnapshot.child("date").getValue(String::class.java)
+                            if (appointmentDate != null) {
+                                val appDate = parseDateString(appointmentDate)
+                                if (appDate != null && isDateInRange(appDate, startDate, endDate)) {
+                                    hasConflicts = true
+                                    break
+                                }
+                            }
                         }
                     }
+
                     callback(hasConflicts)
                 }
 
@@ -160,9 +172,42 @@ class BookTimeOffDentistFragment : Fragment() {
             })
     }
 
-    private fun isDateInRange(appointmentDate: String): Boolean {
-        // Simple string comparison assuming date format is consistent (DD/MM/YYYY)
-        return appointmentDate >= selectedStartDate!! && appointmentDate <= selectedEndDate!!
+    private fun parseDateString(dateStr: String): Date? {
+        return try {
+            val format = SimpleDateFormat("dd/M/yyyy", Locale.getDefault())
+            format.parse(dateStr)
+        } catch (e: Exception) {
+            Log.e("BookTimeOffDentistFragment", "Error parsing date: $dateStr", e)
+            null
+        }
+    }
+
+    private fun isDateInRange(appointmentDate: Date, startDate: Date, endDate: Date): Boolean {
+        // Remove time component from dates for comparison
+        val calendar = Calendar.getInstance()
+
+        calendar.time = appointmentDate
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        val appDate = calendar.time
+
+        calendar.time = startDate
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        val start = calendar.time
+
+        calendar.time = endDate
+        calendar.set(Calendar.HOUR_OF_DAY, 23)
+        calendar.set(Calendar.MINUTE, 59)
+        calendar.set(Calendar.SECOND, 59)
+        calendar.set(Calendar.MILLISECOND, 999)
+        val end = calendar.time
+
+        return !appDate.before(start) && !appDate.after(end)
     }
 
     private fun saveTimeOff(reason: String) {
