@@ -32,14 +32,14 @@ interface ApiService {
     fun approveAppointment(@Path("appointmentId") appointmentId: String?): Call<ResponseBody?>?
 
     // Route for patient notifications
-    @GET("api/appointments/notifications/patient")
+    @GET("api/appointments/notifications/patient/{userId}")
     fun getPatientNotifications(
 
     ): Call<NotificationsResponse>
 
     // Route for staff notifications
-    @GET("notifications/staff")
-    fun getStaffNotifications(): Call<ResponseBody?>?
+    @GET("api/appointments/notifications/staff/{userId}")
+    fun getDentistNotifications(): Call<NotificationsResponse>?
 
     // Route to get all confirmed appointments for logged-in patient
     @GET("myappointments/confirmed")
