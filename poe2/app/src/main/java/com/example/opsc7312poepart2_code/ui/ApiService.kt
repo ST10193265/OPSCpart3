@@ -5,7 +5,6 @@ import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
-import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
@@ -13,13 +12,14 @@ import retrofit2.http.Path
 interface ApiService {
 
     // Route to book an appointment
-    @POST("book")
-    fun bookAppointment(@Body appointment: Appointment?): Call<ResponseBody?>?
+    @POST("api/appointments/book")
+    fun bookAppointment(@Body appointment: Appointments): Call<ResponseBody>
+
 
     // Route to reschedule an appointment
     @PUT("{appointmentId}")
     fun rescheduleAppointment(
-        @Body appointment: Appointment?,
+        @Body appointment: Appointments?,
         @Path("appointmentId") appointmentId: String?
     ): Call<ResponseBody?>?
 
@@ -70,13 +70,18 @@ interface ApiService {
     fun forgetPassword(@Body email: String?): Call<ResponseBody?>?
 }
 
-data class Appointment(
-    val id: String?, // Optional for booking; should be provided for rescheduling
-    val patientId: String,
-    val doctorId: String,
-    val dateTime: String, // Consider using a Date type for better handling
-    val notes: String?
+
+data class Appointments(
+    val date: String,        // Date of appointment
+    val dentist: String,
+    val dentistId: String,   // Unique ID of the dentist
+    val userId: String,     // Unique ID of the client
+    val description: String,  // Brief description of the appointment
+    val slot: String,         // Time slot for the appointment
+    val status: String        // Status of the appointment
 )
+
+
 
 data class User(
     val id: String?, // Optional for registration
