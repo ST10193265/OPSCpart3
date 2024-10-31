@@ -23,10 +23,11 @@ import com.example.opsc7312poepart2_code.ui.ApiService
 import com.example.poe2.databinding.FragmentNotificationsClientBinding
 import com.example.opsc7312poepart2_code.ui.Notification
 import com.example.opsc7312poepart2_code.ui.NotificationsResponse
+import com.example.opsc7312poepart2_code.ui.login_client.LoginClientFragment.Companion.loggedInClientUserId
+import com.google.firebase.messaging.FirebaseMessaging
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-
 class NotificationsClientFragment : Fragment() {
 
     private var _binding: FragmentNotificationsClientBinding? = null
@@ -36,7 +37,8 @@ class NotificationsClientFragment : Fragment() {
     private lateinit var notificationsAdapter: ArrayAdapter<String>
     private val notificationsList = mutableListOf<String>()
     private val FCM_URL = "https://fcm.googleapis.com/fcm/send"
-    private val SERVER_KEY = "YOUR_SERVER_KEY" // Replace with your actual FCM server key
+    private val SERVER_KEY = "BLkQ8flFlwMwiVw93qmEpY6vYNxi95ri8NX58i63-xwuF77k_qqd6PmJ7j4H9I-H2VqS02IBtHO2f3zYT1ttZzw"
+    private var fcmToken: String? = null // Store FCM token here
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
@@ -56,6 +58,18 @@ class NotificationsClientFragment : Fragment() {
         )
         binding.notificationsListView.adapter = notificationsAdapter
 
+        // Retrieve FCM token
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                fcmToken = task.result
+                Log.d("FCM", "Retrieved FCM Token: $fcmToken")
+                // Optionally, you can send the token to the server here
+                // sendFCMTokenToServer(fcmToken)
+            } else {
+                Log.e("FCM", "Failed to retrieve FCM Token")
+            }
+        }
+
         return binding.root
     }
 
@@ -67,39 +81,54 @@ class NotificationsClientFragment : Fragment() {
         fetchNotifications()
 
         // Register the broadcast receiver for real-time updates
-        requireContext().registerReceiver(
-            notificationReceiver,
-            IntentFilter("FCM_NOTIFICATION"),
-            Context.RECEIVER_NOT_EXPORTED
-        )
+        val intentFilter = IntentFilter("FCM_NOTIFICATION")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requireContext().registerReceiver(notificationReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            requireContext().registerReceiver(notificationReceiver, intentFilter)
+        }
     }
 
-    // Fetch notifications from the API
     private fun fetchNotifications() {
-        apiService.getPatientNotifications().enqueue(object : Callback<NotificationsResponse> {
-            override fun onResponse(
-                call: Call<NotificationsResponse>,
-                response: Response<NotificationsResponse>
-            ) {
-                if (response.isSuccessful && response.body() != null) {
-                    notificationsList.clear()
-                    notificationsList.addAll(response.body()!!.notifications.map { it.message })
-                    notificationsAdapter.notifyDataSetChanged()
+        val sharedPref = requireActivity().getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+        val token = sharedPref.getString("jwt_token", null)
+        Log.d("TokenDebug", "Token retrieved: $token")
 
-                    // Send push notifications for each notification received
-                    sendPushNotifications(response.body()!!.notifications)
-                } else {
-                    Log.e("NotificationsClient", "Failed to fetch notifications")
-                }
-            }
+        // Prefix with Bearer if necessary
+        val authToken = token?.let { "Bearer $it" }
+        val userId = loggedInClientUserId
+        Log.d("NotificationsClient", "UserId: $userId")
+        Log.d("NotificationsClient", "AuthToken: $authToken")
 
-            override fun onFailure(call: Call<NotificationsResponse>, t: Throwable) {
-                Log.e("NotificationsClient", "API call failed: ${t.message}")
+        if (userId != null && authToken != null) {
+            fcmToken?.let {
+                apiService.getPatientNotifications(authToken, userId, it).enqueue(object : Callback<NotificationsResponse> {
+                    override fun onResponse(call: Call<NotificationsResponse>, response: Response<NotificationsResponse>) {
+                        Log.d("NotificationsClient", "Response Code: ${response.code()}")
+                        Log.d("NotificationsClient", "Response Body: ${response.body()}")
+
+                        if (response.isSuccessful && response.body() != null) {
+                            notificationsList.clear()
+                            notificationsList.addAll(response.body()!!.notifications.map { it.message })
+                            notificationsAdapter.notifyDataSetChanged()
+                        } else {
+                            Log.e("NotificationsClient", "Failed to fetch notifications: ${response.errorBody()?.string()}")
+                        }
+                    }
+
+                    override fun onFailure(call: Call<NotificationsResponse>, t: Throwable) {
+                        Log.e("NotificationsClient", "API call failed: ${t.message}")
+                        t.printStackTrace()
+                    }
+                })
             }
-        })
+        } else {
+            Log.e("NotificationsClient", "UserId or AuthToken is null")
+        }
     }
 
-    // Function to send push notifications
+
+    // Function to send push notifications (if needed)
     private fun sendPushNotifications(notifications: List<Notification>) {
         // Iterate through each notification and send a push notification
         for (notification in notifications) {
@@ -114,12 +143,13 @@ class NotificationsClientFragment : Fragment() {
 
     // Function to send a message via FCM
     private fun sendFCMMessage(token: String, message: String) {
-        val data = JSONObject()
-        data.put("to", token)
-        data.put("notification", JSONObject().apply {
-            put("title", "New Notification")
-            put("body", message)
-        })
+        val data = JSONObject().apply {
+            put("to", token)
+            put("notification", JSONObject().apply {
+                put("title", "New Notification")
+                put("body", message)
+            })
+        }
 
         // Create the JsonObjectRequest
         val request = object : JsonObjectRequest(
@@ -127,24 +157,20 @@ class NotificationsClientFragment : Fragment() {
             FCM_URL,
             data,
             { response ->
-                // This is the success listener
                 Log.d("FCM", "Notification sent successfully: $response")
             },
             { error ->
-                // This is the error listener
                 Log.e("FCM", "Error sending notification: ${error.message}")
             }
         ) {
-            // Add the required headers for FCM
             override fun getHeaders(): MutableMap<String, String> {
                 val headers = HashMap<String, String>()
-                headers["Authorization"] = "key=$SERVER_KEY" // Use your FCM server key
+                headers["Authorization"] = "key=$SERVER_KEY"
                 headers["Content-Type"] = "application/json"
                 return headers
             }
         }
 
-        // Add the request to the RequestQueue
         Volley.newRequestQueue(requireContext()).add(request)
     }
 
@@ -162,7 +188,11 @@ class NotificationsClientFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-        requireContext().unregisterReceiver(notificationReceiver)
+        try {
+            requireContext().unregisterReceiver(notificationReceiver)
+        } catch (e: IllegalArgumentException) {
+            Log.e("NotificationsClient", "Receiver not registered: ${e.message}")
+        }
     }
 }
 

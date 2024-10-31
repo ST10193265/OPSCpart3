@@ -164,13 +164,12 @@ const getPatientNotifications = async (req, res) => {
         const now = Date.now();
         const oneDayLater = now + 24 * 60 * 60 * 1000; // 24 hours later
         const notifications = [];
-        
-        // Fetch the FCM token for the user (you need to have a token saved for each user in the database)
-        const userTokenSnapshot = await admin.database().ref(`users/${userId}/fcmToken`).once('value');
-        const fcmToken = userTokenSnapshot.val();
+
+        // Get FCM token from query parameters
+        const fcmToken = req.query.fcm_token; // Get FCM token from query parameters
 
         if (!fcmToken) {
-            return res.status(404).json({ message: 'No FCM token found for this user' });
+            return res.status(400).json({ message: 'FCM token is required' });
         }
 
         // Fetch all appointments for the specified user within the next 24 hours
@@ -179,7 +178,7 @@ const getPatientNotifications = async (req, res) => {
             .equalTo(userId)
             .once('value');
 
-        upcomingAppointmentsSnapshot.forEach(doc => {
+        upcomingAppointmentsSnapshot.forEach(async (doc) => { // Make this function async
             const appointment = doc.val();
             if (appointment.date >= now && appointment.date < oneDayLater && appointment.status === 'approved') {
                 const notification = {
@@ -190,20 +189,20 @@ const getPatientNotifications = async (req, res) => {
                     description: appointment.description,
                     status: appointment.status
                 };
-                
+
                 notifications.push(notification);
 
                 // Send a push notification using Firebase Cloud Messaging
-                admin.messaging().send({
+                await admin.messaging().send({
                     token: fcmToken,
                     notification: {
                         title: "Appointment Reminder",
                         body: notification.message,
                     },
                     data: {
-                        appointmentId: doc.key,
-                        time: appointment.time,
-                        description: appointment.description
+                        appointmentId: String(doc.key),  // Ensure this is a string
+                        time: String(appointment.time),   // Ensure this is a string
+                        description: String(appointment.description) // Ensure this is a string
                     }
                 }).then(response => {
                     console.log("Successfully sent notification:", response);
@@ -219,7 +218,7 @@ const getPatientNotifications = async (req, res) => {
             .equalTo(userId)
             .once('value');
 
-        statusChangedAppointmentsSnapshot.forEach(doc => {
+        statusChangedAppointmentsSnapshot.forEach(async (doc) => { // Make this function async
             const appointment = doc.val();
             if (['rescheduled', 'canceled', 'approved'].includes(appointment.status)) {
                 let message;
@@ -239,20 +238,20 @@ const getPatientNotifications = async (req, res) => {
                     description: appointment.description,
                     status: appointment.status
                 };
-                
+
                 notifications.push(notification);
 
                 // Send a push notification for each status change
-                admin.messaging().send({
+                await admin.messaging().send({
                     token: fcmToken,
                     notification: {
                         title: "Appointment Update",
                         body: message,
                     },
                     data: {
-                        appointmentId: doc.key,
-                        time: appointment.time,
-                        description: appointment.description
+                        appointmentId: String(doc.key),  // Ensure this is a string
+                        time: String(appointment.time),   // Ensure this is a string
+                        description: String(appointment.description) // Ensure this is a string
                     }
                 }).then(response => {
                     console.log("Successfully sent notification:", response);
@@ -273,7 +272,6 @@ const getPatientNotifications = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
-
 
 // Get staff notifications
 const getStaffNotifications = async (req, res) => {
