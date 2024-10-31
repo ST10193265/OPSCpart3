@@ -90,15 +90,18 @@ data class Credentials(
     val email: String,
     val password: String
 )
-
 data class Notification(
     val appointmentId: String,
     val message: String,
     val date: String,
     val time: String,
     val description: String,
-    val status: String
+    val status: String,
+    val priority: Int = 0, // Optional: default priority level
+    val isRead: Boolean = false, // Optional: default read status
+    val fcmToken: String? = null // Optional: FCM token for sending notifications
 )
+
 
 data class NotificationsResponse(
     val notifications: List<Notification>

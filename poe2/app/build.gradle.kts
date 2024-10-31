@@ -61,7 +61,6 @@ android {
         implementation(platform(libs.firebase.bom)) // Use the latest Firebase BoM
         implementation(libs.firebase.auth.ktx)
         implementation(libs.firebase.database.ktx)
-        implementation ("com.google.firebase:firebase-messaging-ktx")
 
         // Google Play Services
         implementation("com.google.android.gms:play-services-maps:18.1.0")
@@ -137,11 +136,13 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.firebase.functions.ktx)
+    implementation(libs.firebase.messaging)
     androidTestImplementation(libs.junit.junit)
     androidTestImplementation(libs.junit.junit)
 
     implementation ("com.applandeo:material-calendar-view:1.9.2°")
-
+    implementation ("com.android.volley:volley:1.2.1")
+    implementation ("org.json:json:20210307")
     implementation ("com.auth0:java-jwt:4.2.1")
 
     // Biometric library for Android

@@ -2,38 +2,44 @@ const admin = require('../config/db.js');
 
 // Book an appointment
 const bookAppointment = async (req, res) => {
-    const { date, dentist, dentistId, description, slot } = req.body;
-    const userId = req.user.id; // Get userId from the authenticated user
+    const { date, dentist, dentistId, description, slot, status } = req.body;
+    //const userId = req.userId ; 
+
+    const userId = req.body.userId || req.user?.id || req.user?.clientId || req.body.clientId;
+
+
+    if (!userId) {
+        console.error("User ID is missing from request.");
+        return res.status(400).json({ message: 'User not authenticated' });
+    }
 
     try {
-        // Generate a new appointment ID
-        const appointmentId = admin.database().ref('appointments').push().key; 
-        
+        const appointmentId = admin.database().ref('appointments').push().key;
+
         const appointment = {
-            appointmentId,      // Generated ID for appointment
-            date,               // Date of appointment
-            dentist,           // Dentist's name
-            dentistId,         // Dentist's ID
-            description,       // Description of appointment
-            slot,              // Time slot for appointment
-            userId,            // User ID of the patient from token
-            status: 'pending',  // Initial status
-            createdAt: admin.database.ServerValue.TIMESTAMP, // Add timestamp
+            appointmentId,
+            date,
+            dentist,
+            dentistId,
+            description,
+            slot,
+            userId,
+            status: 'pending',
+            createdAt: admin.database.ServerValue.TIMESTAMP,
         };
 
-        // Set the appointment data in the database
         await admin.database().ref(`appointments/${appointmentId}`).set(appointment);
-        
-        // Respond with a success message and appointment ID
+
         res.status(201).json({
             message: 'Appointment booked successfully',
-            appointmentId, // Return the appointment ID
+            appointmentId,
         });
     } catch (error) {
         console.error("Error booking appointment:", error);
         res.status(500).json({ message: 'Server error' });
     }
 };
+
 
 // Reschedule an appointment
 const rescheduleAppointment = async (req, res) => {
@@ -151,45 +157,72 @@ const approveAppointment = async (req, res) => {
     }
 };
 
-// Get patient notifications
+
 const getPatientNotifications = async (req, res) => {
     try {
+        const userId = req.params.userId || req.user.id; // Use `req.user.id` if `userId` is not passed
         const now = Date.now();
         const oneDayLater = now + 24 * 60 * 60 * 1000; // 24 hours later
-
         const notifications = [];
+        
+        // Fetch the FCM token for the user (you need to have a token saved for each user in the database)
+        const userTokenSnapshot = await admin.database().ref(`users/${userId}/fcmToken`).once('value');
+        const fcmToken = userTokenSnapshot.val();
 
-        // Fetch all appointments for the logged-in patient within the next 24 hours
+        if (!fcmToken) {
+            return res.status(404).json({ message: 'No FCM token found for this user' });
+        }
+
+        // Fetch all appointments for the specified user within the next 24 hours
         const upcomingAppointmentsSnapshot = await admin.database().ref('appointments')
             .orderByChild('userId')
-            .equalTo(req.user.id)
+            .equalTo(userId)
             .once('value');
 
         upcomingAppointmentsSnapshot.forEach(doc => {
             const appointment = doc.val();
             if (appointment.date >= now && appointment.date < oneDayLater && appointment.status === 'approved') {
-                notifications.push({
+                const notification = {
                     appointmentId: doc.key,
                     message: `Reminder: You have a confirmed appointment tomorrow at ${appointment.time}.`,
                     date: appointment.date,
                     time: appointment.time,
                     description: appointment.description,
                     status: appointment.status
+                };
+                
+                notifications.push(notification);
+
+                // Send a push notification using Firebase Cloud Messaging
+                admin.messaging().send({
+                    token: fcmToken,
+                    notification: {
+                        title: "Appointment Reminder",
+                        body: notification.message,
+                    },
+                    data: {
+                        appointmentId: doc.key,
+                        time: appointment.time,
+                        description: appointment.description
+                    }
+                }).then(response => {
+                    console.log("Successfully sent notification:", response);
+                }).catch(error => {
+                    console.error("Error sending notification:", error);
                 });
             }
         });
 
-        // Fetch all appointments with status changes (rescheduled, canceled, approved)
+        // Fetch all appointments with status changes
         const statusChangedAppointmentsSnapshot = await admin.database().ref('appointments')
             .orderByChild('userId')
-            .equalTo(req.user.id)
+            .equalTo(userId)
             .once('value');
 
         statusChangedAppointmentsSnapshot.forEach(doc => {
             const appointment = doc.val();
             if (['rescheduled', 'canceled', 'approved'].includes(appointment.status)) {
                 let message;
-
                 if (appointment.status === 'rescheduled') {
                     message = `Your appointment has been rescheduled.`;
                 } else if (appointment.status === 'canceled') {
@@ -198,19 +231,38 @@ const getPatientNotifications = async (req, res) => {
                     message = `Your appointment has been confirmed.`;
                 }
 
-                notifications.push({
+                const notification = {
                     appointmentId: doc.key,
                     message,
                     date: appointment.date,
                     time: appointment.time,
                     description: appointment.description,
                     status: appointment.status
+                };
+                
+                notifications.push(notification);
+
+                // Send a push notification for each status change
+                admin.messaging().send({
+                    token: fcmToken,
+                    notification: {
+                        title: "Appointment Update",
+                        body: message,
+                    },
+                    data: {
+                        appointmentId: doc.key,
+                        time: appointment.time,
+                        description: appointment.description
+                    }
+                }).then(response => {
+                    console.log("Successfully sent notification:", response);
+                }).catch(error => {
+                    console.error("Error sending notification:", error);
                 });
             }
         });
 
         const notificationCount = notifications.length;
-
         if (notificationCount === 0) {
             return res.status(404).json({ message: 'No notifications found for this patient' });
         }
@@ -221,6 +273,7 @@ const getPatientNotifications = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
 
 // Get staff notifications
 const getStaffNotifications = async (req, res) => {
@@ -417,5 +470,3 @@ module.exports = {
     getAllAppointments,
     getConfirmedAppointments,
 };
-
-
