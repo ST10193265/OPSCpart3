@@ -278,12 +278,20 @@ const getPatientNotifications = async (req, res) => {
 // Get staff notifications
 const getStaffNotifications = async (req, res) => {
     try {
+        const userId = req.params.userId || req.user.id; // Use `req.user.id` if `userId` is not passed
         const now = Date.now();
         const oneDayLater = now + 24 * 60 * 60 * 1000; // 24 hours later
-
         const notifications = [];
 
-        // Fetch all upcoming appointments within the next 24 hours with confirmed status
+        // Fetch the FCM token for the staff member
+        const userTokenSnapshot = await admin.database().ref(`users/${userId}/fcmToken`).once('value');
+        const fcmToken = userTokenSnapshot.val();
+
+        if (!fcmToken) {
+            return res.status(404).json({ message: 'No FCM token found for this user' });
+        }
+
+        // Fetch all upcoming appointments for the staff member within the next 24 hours
         const upcomingAppointmentsSnapshot = await admin.database().ref('appointments')
             .orderByChild('status')
             .equalTo('approved') // Change to 'confirmed' if needed
@@ -292,7 +300,7 @@ const getStaffNotifications = async (req, res) => {
         upcomingAppointmentsSnapshot.forEach(doc => {
             const appointment = doc.val();
             if (appointment.date >= now && appointment.date < oneDayLater) {
-                notifications.push({
+                const notification = {
                     appointmentId: doc.key,
                     patientId: appointment.userId,
                     message: `Reminder: ${appointment.userId} has a confirmed appointment tomorrow at ${appointment.time}.`,
@@ -300,13 +308,35 @@ const getStaffNotifications = async (req, res) => {
                     time: appointment.time,
                     description: appointment.description,
                     status: appointment.status
+                };
+
+                notifications.push(notification);
+
+                // Send a push notification using Firebase Cloud Messaging
+                admin.messaging().send({
+                    token: fcmToken,
+                    notification: {
+                        title: "Appointment Reminder",
+                        body: notification.message,
+                    },
+                    data: {
+                        appointmentId: doc.key,
+                        patientId: appointment.userId,
+                        time: appointment.time,
+                        description: appointment.description
+                    }
+                }).then(response => {
+                    console.log("Successfully sent notification:", response);
+                }).catch(error => {
+                    console.error("Error sending notification:", error);
                 });
             }
         });
 
         // Fetch appointments with status changes (pending, rescheduled, canceled)
         const statusChangedAppointmentsSnapshot = await admin.database().ref('appointments')
-            .orderByChild('status')
+            .orderByChild('userId')
+            .equalTo(userId) // Fetch appointments for the specific staff member
             .once('value');
 
         statusChangedAppointmentsSnapshot.forEach(doc => {
@@ -322,13 +352,33 @@ const getStaffNotifications = async (req, res) => {
                     message = `An appointment has been canceled.`;
                 }
 
-                notifications.push({
+                const notification = {
                     appointmentId: doc.key,
                     message,
                     date: appointment.date,
                     time: appointment.time,
                     description: appointment.description,
                     status: appointment.status
+                };
+
+                notifications.push(notification);
+
+                // Send a push notification for each status change
+                admin.messaging().send({
+                    token: fcmToken,
+                    notification: {
+                        title: "Appointment Update",
+                        body: message,
+                    },
+                    data: {
+                        appointmentId: doc.key,
+                        time: appointment.time,
+                        description: appointment.description
+                    }
+                }).then(response => {
+                    console.log("Successfully sent notification:", response);
+                }).catch(error => {
+                    console.error("Error sending notification:", error);
                 });
             }
         });
@@ -345,6 +395,7 @@ const getStaffNotifications = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
 
 // Get confirmed appointments for the logged-in patient
 const getConfirmedAppointmentsForPatient = async (req, res) => {
