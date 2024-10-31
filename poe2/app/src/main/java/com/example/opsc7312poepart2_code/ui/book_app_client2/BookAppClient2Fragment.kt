@@ -18,6 +18,7 @@ import com.example.opsc7312poepart2_code.ui.Appointments
 import com.example.opsc7312poepart2_code.ui.ApiClient
 import com.example.opsc7312poepart2_code.ui.ApiService
 import com.example.opsc7312poepart2_code.ui.login_client.LoginClientFragment
+import com.example.opsc7312poepart2_code.ui.login_client.LoginClientFragment.Companion.loggedInClientUserId
 import com.google.firebase.database.*
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -130,6 +131,23 @@ class BookAppClient2Fragment : Fragment() {
 
             override fun onCancelled(error: DatabaseError) {
                 Log.e("BookAppClient2Fragment", "Error fetching dentist ID: ${error.message}")
+            }
+        })
+    }
+
+    private fun getUserIdFromFirebase(username: String) {
+        clientDatabase.orderByChild("username").equalTo(username).addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.exists()) {
+                    loggedInClientUserId = snapshot.children.first().key // Get user ID
+                    Log.d("LoginClientFragment", "Logged in user ID: $loggedInClientUserId")
+                } else {
+                    Log.d("LoginClientFragments", "User ID not found for $username")
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("LoginClientFragment", "Database error when retrieving user ID: ${error.message}")
             }
         })
     }

@@ -17,6 +17,7 @@ import androidx.navigation.fragment.findNavController
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.example.opsc7312poepart2_code.ui.BiometricAuthenticator
+import com.example.opsc7312poepart2_code.ui.login_dentist.LoginDentistFragment.Companion.loggedInDentistUserId
 import com.example.poe2.R
 import com.example.poe2.databinding.FragmentLoginClientBinding
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -124,27 +125,63 @@ class LoginClientFragment : Fragment() {
     }
 
     private fun initiateBiometricLogin() {
-        Log.d("LoginClientFragment", "Initiating biometric login")
-        val biometricAuthenticator = BiometricAuthenticator(requireActivity(), {
-            val username = binding.etxtUsername.text.toString().trim()
-            Log.d("LoginClientFragment", "Biometric authentication successful for user: $username")
+        val username = binding.etxtUsername.text.toString().trim()
 
-            if (username.isNotEmpty()) {
-                // Generate JWT token
-                val jwtToken = generateJwtToken(username, "client") // Assuming role is "client"
-                Log.d("LoginClientFragment", "JWT Token generated: $jwtToken")
+        if (username.isEmpty()) {
+            showToast("Error: Username is required.")
+            return
+        }
 
-                findNavController().navigate(R.id.action_nav_login_client_to_nav_menu_client)
-            } else {
-                Log.e("LoginClientFragment", "Username is empty after biometric authentication")
-                showToast("Error: Username is required.")
-            }
-        }, { errorMessage ->
-            showToast(errorMessage)
-            Log.e("LoginClientFragment", "Biometric authentication error: $errorMessage")
-        })
-        biometricAuthenticator.authenticate()
+        dbReference.orderByChild("username").equalTo(username)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (!snapshot.exists()) {
+                        Log.e("LoginClientFragment", "User $username not found in the database")
+                        showToast("Error: User not found.")
+                        return
+                    }
+
+                    Log.d("LoginClientFragment", "User $username found in the database")
+                    val userSnapshot = snapshot.children.first()
+                    val userId = userSnapshot.child("id").getValue(String::class.java).orEmpty()
+                    val role = userSnapshot.child("role").getValue(String::class.java).orEmpty().ifEmpty { "client" }
+
+                    loggedInClientUsername = username
+                    //loggedInClientUserId = userId
+
+                    loggedInClientUserId = snapshot.children.first().key // Get user ID
+
+                    Log.d("LoginDentistFragment", "Id is: $loggedInClientUserId")
+                    Log.d("LoginDentistFragment", "Id is: $username")
+                    getUserIdFromFirebase(username)
+
+
+
+                    val biometricAuthenticator = BiometricAuthenticator(requireActivity(), {
+                        Log.d("LoginClientFragment", "Biometric authentication successful for user: $username")
+
+                        val jwtToken = generateJwtToken(userId, role)
+                        Log.d("LoginClientFragment", "JWT Token generated: $jwtToken")
+
+                        Log.d("LoginClientFragment", "Navigating to client menu after successful authentication")
+                        findNavController().navigate(R.id.action_nav_login_client_to_nav_menu_client)
+                    }, { errorMessage ->
+                        showToast(errorMessage)
+                        Log.e("LoginClientFragment", "Biometric authentication error: $errorMessage")
+                    })
+
+                    Log.d("LoginClientFragment", "Starting biometric authentication process")
+                    biometricAuthenticator.authenticate()
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("LoginClientFragment", "Database error: ${error.message}")
+                    showToast("Error: Database connection failed.")
+                }
+            })
+
     }
+
 
     private fun showToast(message: String) {
         Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
@@ -196,6 +233,10 @@ class LoginClientFragment : Fragment() {
                     if (hashedPassword == storedHashedPassword) {
                         Log.d("LoginClientFragment", "Password matches for user: $username")
                         loggedInClientUsername = username
+                        loggedInClientUserId = userId
+
+                        Log.d("LoginDentistFragment", "Id is: $loggedInClientUserId")
+                        Log.d("LoginDentistFragment", "Id is: $userId")
                         getUserIdFromFirebase(username) // Fetch and store user ID
 
                         // Generate JWT token with ID and role

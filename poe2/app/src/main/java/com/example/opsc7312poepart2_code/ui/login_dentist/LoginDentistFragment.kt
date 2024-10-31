@@ -113,20 +113,56 @@ class LoginDentistFragment : Fragment() {
         val signInIntent = mGoogleSignInClient.signInIntent
         startActivityForResult(signInIntent, RC_SIGN_IN)
     }
-
     private fun initiateBiometricLogin() {
-        val biometricAuthenticator = BiometricAuthenticator(requireActivity(), {
-            val username = binding.etxtUsername.text.toString().trim()
-            if (username.isNotEmpty()) {
-                val jwtToken = generateJwtToken(username, "dentist") // Assuming role is "dentist"
-                findNavController().navigate(R.id.action_nav_login_dentist_to_nav_menu_dentist)
-            } else {
-                showToast("Error: Username is required.")
-            }
-        }, { errorMessage ->
-            showToast(errorMessage)
-        })
-        biometricAuthenticator.authenticate()
+        val username = binding.etxtUsername.text.toString().trim()
+
+        if (username.isEmpty()) {
+            showToast("Error: Username is required.")
+            return
+        }
+
+        dbReference.orderByChild("username").equalTo(username)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (!snapshot.exists()) {
+                        Log.e("LoginDentistFragment", "User $username not found in the database")
+                        showToast("Error: User not found.")
+                        return
+                    }
+
+                    Log.d("LoginDentistFragment", "User $username found in the database")
+                    val userSnapshot = snapshot.children.first()
+                    val userId = userSnapshot.child("id").getValue(String::class.java).orEmpty()
+                    val role = userSnapshot.child("role").getValue(String::class.java).orEmpty().ifEmpty { "client" }
+
+                    loggedInDentistUsername = username
+                    loggedInDentistUserId = snapshot.children.first().key // Get user ID
+                    Log.d("LoginDentistFragment", "Id is: $loggedInDentistUserId")
+                    Log.d("LoginDentistFragment", "Id is: $userId")
+
+                    val biometricAuthenticator = BiometricAuthenticator(requireActivity(), {
+                        Log.d("LoginDentistFragment", "Biometric authentication successful for user: $username")
+
+                        val jwtToken = generateJwtToken(userId, "dentist")
+                        Log.d("LoginDentistFragment", "JWT Token generated: $jwtToken")
+
+                        Log.d("LoginDentistFragment", "Navigating to client menu after successful authentication")
+                        findNavController().navigate(R.id.action_nav_login_dentist_to_nav_menu_dentist)
+                    }, { errorMessage ->
+                        showToast(errorMessage)
+                        Log.e("LoginDentistFragment", "Biometric authentication error: $errorMessage")
+                    })
+
+                    Log.d("LoginDentistFragment", "Starting biometric authentication process")
+                    biometricAuthenticator.authenticate()
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("LoginDentistFragment", "Database error: ${error.message}")
+                    showToast("Error: Database connection failed.")
+                }
+            })
+
     }
 
     private fun showToast(message: String) {
@@ -177,7 +213,7 @@ class LoginDentistFragment : Fragment() {
                         // Generate JWT token with ID and role
                         val jwtToken = generateJwtToken(userId, role)
                         saveToken(jwtToken) // Save the generated token
-                        Log.d("LoginClientFragment", "JWT Token generated: $jwtToken")
+                        Log.d("LoginDentistFragment", "JWT Token generated: $jwtToken")
 
                         Toast.makeText(requireContext(), "Login successful!", Toast.LENGTH_SHORT).show()
                         findNavController().navigate(R.id.action_nav_login_dentist_to_nav_menu_dentist)

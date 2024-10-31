@@ -13,6 +13,7 @@ import com.example.opsc7312poepart2_code.ui.ApiClient
 import com.example.opsc7312poepart2_code.ui.ApiService
 import com.example.opsc7312poepart2_code.ui.Appointments
 import com.example.opsc7312poepart2_code.ui.login_dentist.LoginDentistFragment
+import com.example.opsc7312poepart2_code.ui.login_dentist.LoginDentistFragment.Companion.loggedInDentistUserId
 import com.example.poe2.databinding.FragmentAppDentistBinding
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -87,19 +88,43 @@ class AppDentistFragment : Fragment() {
 
 
     private fun getDentistIdByUsername() {
-        Log.d("AppDentistFragment", "getDentistIdByUsername: Attempting to retrieve dentist ID from LoginDentistFragment.")
+        val loggedInUsername = LoginDentistFragment.loggedInDentistUsername // Assuming this stores the current dentist's username
 
-        // Attempt to retrieve dentist ID from LoginDentistFragment
-        dentistId = LoginDentistFragment.loggedInDentistUserId
+        Log.d("AppDentistFragment", "getDentistIdByUsername: Attempting to retrieve dentist ID for user: $loggedInUsername")
 
-        if (dentistId != null) {
-            Log.d("AppDentistFragment", "getDentistIdByUsername: Successfully retrieved Dentist ID: $dentistId")
-            fetchAppointments()
-        } else {
-            Log.e("AppDentistFragment", "getDentistIdByUsername: No logged-in dentist ID found.")
+        if (loggedInUsername.isNullOrEmpty()) {
+            Log.e("AppDentistFragment", "getDentistIdByUsername: No logged-in dentist username found.")
             Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show()
+            return
         }
+
+        // Reference to Firebase users table
+        val dbReference = FirebaseDatabase.getInstance().getReference("users")
+
+        dbReference.orderByChild("username").equalTo(loggedInUsername).addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                    if (snapshot.exists()) {
+                        val userSnapshot = snapshot.children.firstOrNull()
+                        val dentistId = userSnapshot?.key ?: "" // Get the unique Firebase ID as dentistId
+
+                        loggedInDentistUserId = dentistId // Assuming this is where you store the dentist ID globally
+                        Toast.makeText(requireContext(), "Dentist ID: $dentistId", Toast.LENGTH_SHORT).show()
+
+                        Log.d("AppDentistFragment", "getDentistIdByUsername: Successfully retrieved Dentist ID: $dentistId")
+                        fetchAppointments() // Call to fetch appointments after ID retrieval
+                    } else {
+                        Log.e("AppDentistFragment", "getDentistIdByUsername: Dentist ID not found for username: $loggedInUsername")
+                        Toast.makeText(requireContext(), "Dentist not found in database", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("AppDentistFragment", "getDentistIdByUsername: Database error: ${error.message}")
+                    Toast.makeText(requireContext(), "Database error: ${error.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
     }
+
 
     private fun fetchAppointments() {
         if (dentistId == null) {
@@ -151,17 +176,20 @@ class AppDentistFragment : Fragment() {
     }
 
     private fun approveBooking() {
+       // Toast.makeText(requireContext(), "${selectedAppointmentId}", Toast.LENGTH_SHORT).show()
         if (selectedAppointmentId == null) {
-            Toast.makeText(requireContext(), "No appointment selected", Toast.LENGTH_SHORT).show()
+           Toast.makeText(requireContext(), "No appointment selected", Toast.LENGTH_SHORT).show()
             return
         }
 
         Log.d("AppDentistFragment", "approveBooking: Approving booking for appointment ID: $selectedAppointmentId")
 
         // Call the API to approve the appointment using appointmentId
-        apiService.approveAppointment(selectedAppointmentId!!, Appointments("approved")) // Assuming you want to update the status
+        apiService.approveAppointment(selectedAppointmentId.toString(), Appointments("approved")) // Assuming you want to update the status
             .enqueue(object : Callback<ResponseBody> {
                 override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                    Toast.makeText(requireContext(), "${response.isSuccessful}", Toast.LENGTH_SHORT).show()
+
                     if (response.isSuccessful) {
                         Toast.makeText(requireContext(), "Booking approved successfully", Toast.LENGTH_SHORT).show()
                         fetchAppointments()
