@@ -2,38 +2,44 @@ const admin = require('../config/db.js');
 
 // Book an appointment
 const bookAppointment = async (req, res) => {
-    const { date, dentist, dentistId, description, slot } = req.body;
-    const userId = req.user.id; // Get userId from the authenticated user
+    const { date, dentist, dentistId, description, slot, status } = req.body;
+    //const userId = req.userId ; 
+
+    const userId = req.body.userId || req.user?.id || req.user?.clientId || req.body.clientId;
+
+
+    if (!userId) {
+        console.error("User ID is missing from request.");
+        return res.status(400).json({ message: 'User not authenticated' });
+    }
 
     try {
-        // Generate a new appointment ID
-        const appointmentId = admin.database().ref('appointments').push().key; 
-        
+        const appointmentId = admin.database().ref('appointments').push().key;
+
         const appointment = {
-            appointmentId,      // Generated ID for appointment
-            date,               // Date of appointment
-            dentist,           // Dentist's name
-            dentistId,         // Dentist's ID
-            description,       // Description of appointment
-            slot,              // Time slot for appointment
-            userId,            // User ID of the patient from token
-            status: 'pending',  // Initial status
-            createdAt: admin.database.ServerValue.TIMESTAMP, // Add timestamp
+            appointmentId,
+            date,
+            dentist,
+            dentistId,
+            description,
+            slot,
+            userId,
+            status: 'pending',
+            createdAt: admin.database.ServerValue.TIMESTAMP,
         };
 
-        // Set the appointment data in the database
         await admin.database().ref(`appointments/${appointmentId}`).set(appointment);
-        
-        // Respond with a success message and appointment ID
+
         res.status(201).json({
             message: 'Appointment booked successfully',
-            appointmentId, // Return the appointment ID
+            appointmentId,
         });
     } catch (error) {
         console.error("Error booking appointment:", error);
         res.status(500).json({ message: 'Server error' });
     }
 };
+
 
 // Reschedule an appointment
 const rescheduleAppointment = async (req, res) => {

@@ -147,4 +147,6 @@ dependencies {
     // Biometric library for Android
     implementation ("androidx.biometric:biometric:1.1.0")
 
+    implementation ("androidx.biometric:biometric:1.2.0-alpha05")
+
 }

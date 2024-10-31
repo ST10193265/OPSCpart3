@@ -76,16 +76,6 @@
         app:layout_constraintVertical_bias="0.0"
         />
 
-        <Button
-            android:id="@+id/btnBookTimeOff"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="24dp"
-            android:layout_marginBottom="16dp"
-            android:text="Book Time Off"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Adapted from: Android FrameLayout Documentation -->
