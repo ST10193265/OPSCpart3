@@ -32,62 +32,54 @@ class BookAppClient2Fragment : Fragment() {
     private lateinit var spinnerTime: Spinner
     private lateinit var etxtDescription: EditText
 
-    private lateinit var dentistDatabase: DatabaseReference // Reference for dentists
+    private lateinit var dentistDatabase: DatabaseReference
     private lateinit var appointmentssDatabase: DatabaseReference
     private lateinit var clientDatabase: DatabaseReference
 
-    private lateinit var apiService: ApiService // Declare ApiService instance
+    private lateinit var apiService: ApiService
 
     private var dentistId: String? = null
     private var userId: String? = null
+    private var clientUsername: String? = null
     private var selectedDate: String? = null
-    private var dentistUsername: String? = null // Variable to hold dentist's username
+    private var dentistUsername: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_book_app_client2, container, false)
 
-        // Initialize views
         txtSelectedDentist = view.findViewById(R.id.txtSelectedDentist)
         txtDate = view.findViewById(R.id.txtDate)
         calendarView = view.findViewById(R.id.calendar)
         spinnerTime = view.findViewById(R.id.sTime)
         etxtDescription = view.findViewById(R.id.etxtDescription)
 
-        // Initialize Firebase Database reference for dentists
-        dentistDatabase = FirebaseDatabase.getInstance().getReference("dentists") // Dentists reference
+        dentistDatabase = FirebaseDatabase.getInstance().getReference("dentists")
         appointmentssDatabase = FirebaseDatabase.getInstance().getReference("appointments")
         clientDatabase = FirebaseDatabase.getInstance().getReference("clients")
 
-        apiService = ApiClient.createApiService(requireContext()) // Initialize ApiService
+        apiService = ApiClient.createApiService(requireContext())
 
-        // Get the selected dentist's name from arguments and set it to the TextView
         val selectedDentist = arguments?.getString("selectedDentist")
         txtSelectedDentist.text = selectedDentist
         Log.d("BookAppClient2Fragment", "Selected Dentist: $selectedDentist")
 
-        // Populate time slots
         populateTimeSlots()
 
-        // Set up the CalendarView listener
         calendarView.setOnDateChangeListener { _, year, month, dayOfMonth ->
             selectedDate = "$dayOfMonth/${month + 1}/$year"
-            txtDate.text = selectedDate // Populate txtDate with the selected date
+            txtDate.text = selectedDate
             Log.d("BookAppClient2Fragment", "Selected Date: $selectedDate")
         }
 
-        // Load selected dentist ID and username
         if (selectedDentist != null) {
             getDentistIdByName(selectedDentist)
         }
 
-        // Load client ID
         getClientIdByUsername(LoginClientFragment.loggedInClientUsername ?: "")
 
-        // Set up the Book button listener to book the appointment
         view.findViewById<View>(R.id.btnBook).setOnClickListener {
             if (selectedDate == null) {
                 Toast.makeText(requireContext(), "Please select a date.", Toast.LENGTH_SHORT).show()
@@ -97,12 +89,11 @@ class BookAppClient2Fragment : Fragment() {
             bookAppointment()
         }
 
-        // Set up the Cancel button listener to clear fields
         view.findViewById<View>(R.id.btnCancel).setOnClickListener {
-            clearFields() // Call clearFields when cancel is clicked
+            clearFields()
         }
 
-        view.findViewById<View>(R.id.ibtnBack).setOnClickListener{
+        view.findViewById<View>(R.id.ibtnBack).setOnClickListener {
             findNavController().navigate(R.id.action_nav_book_app_client2_to_nav_book_app_client1)
         }
 
@@ -110,14 +101,12 @@ class BookAppClient2Fragment : Fragment() {
     }
 
     private fun populateTimeSlots() {
-        // Define the hourly intervals as strings
         val timeSlots = listOf(
             "Select a time",
             "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
             "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM"
         )
 
-        // Set the adapter for the spinner
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, timeSlots)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerTime.adapter = adapter
@@ -151,8 +140,9 @@ class BookAppClient2Fragment : Fragment() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     for (clientSnapshot in snapshot.children) {
-                        userId = LoginClientFragment.loggedInClientUserId ?: "" // Get the client ID
-                        Log.d("BookAppClient2Fragment", "Client ID found: $userId")
+                        userId = clientSnapshot.key // Get the client ID from the snapshot
+                        clientUsername = username // Store the retrieved username
+                        Log.d("BookAppClient2Fragment", "Client ID found: $userId, Username: $clientUsername")
                     }
                 } else {
                     Log.e("BookAppClient2Fragment", "Client not found.")
@@ -167,32 +157,28 @@ class BookAppClient2Fragment : Fragment() {
     }
 
     private fun bookAppointment() {
-        // Check if dentistId and clientId are available
-        if (dentistId == null || userId == null) {
+        if (dentistId == null || userId == null || clientUsername == null) {
             Toast.makeText(requireContext(), "Please select a dentist and ensure you are logged in.", Toast.LENGTH_SHORT).show()
             Log.e("BookAppClient2Fragment", "Dentist ID or Client ID is null.")
             return
         }
 
-        // Get selected date, time slot, and description
-        val selectedDate = txtDate.text.toString() // e.g., "2024-10-30"
-        val selectedSlot = spinnerTime.selectedItem.toString() // e.g., "10:00 AM"
-        val description = etxtDescription.text.toString() // e.g., "Checkup visit"
+        val selectedSlot = spinnerTime.selectedItem.toString()
+        val description = etxtDescription.text.toString()
 
-        // Create appointment instance
         val appointment = Appointments(
-            date = selectedDate,
-            dentist = dentistUsername ?: "", // Use dentistUsername here
-            dentistId = dentistId!!,  // Ensure dentistId is not null
+            date = selectedDate ?: "",
+            dentist = dentistUsername ?: "",
+            dentistId = dentistId!!,
             description = description,
             slot = selectedSlot,
-            userId = userId!!,     // Ensure clientId is not null
-            status = "pending" // Setting initial status to pending
+            userId = userId!!,
+            clientUsername = clientUsername ?: "", // Include client username
+            status = "pending"
         )
 
         Log.d("BookAppClient2Fragment", "Booking appointment: $appointment with user ID: $userId")
 
-        // Make the API call to book the appointment, including user ID in the request
         apiService.bookAppointment(appointment).enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
@@ -216,12 +202,9 @@ class BookAppClient2Fragment : Fragment() {
     }
 
     private fun clearFields() {
-        // Clear the input fields
-        txtDate.text = ""
         txtSelectedDentist.text = ""
+        txtDate.text = ""
+        spinnerTime.setSelection(0)
         etxtDescription.text.clear()
-        calendarView.setDate(System.currentTimeMillis(), true, true)
-        spinnerTime.setSelection(0) // Reset the spinner to the first item
-        Log.d("BookAppClient2Fragment", "Fields cleared after booking appointment.")
     }
 }

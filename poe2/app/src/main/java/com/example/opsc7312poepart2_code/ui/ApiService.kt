@@ -17,19 +17,25 @@ interface ApiService {
 
 
     // Route to reschedule an appointment
-    @PUT("{appointmentId}")
+    @PUT("api/appointments/reschedule/{appointmentId}")
     fun rescheduleAppointment(
-        @Body appointment: Appointments?,
-        @Path("appointmentId") appointmentId: String?
-    ): Call<ResponseBody?>?
+        @Path("appointmentId") appointmentId: String,
+        @Body appointment: Appointments
+    ): Call<ResponseBody>
 
     // Route to cancel an appointment
-    @DELETE("{appointmentId}")
-    fun cancelAppointment(@Path("appointmentId") appointmentId: String?): Call<ResponseBody?>?
+    @PUT("api/appointments/cancel/{appointmentId}")
+    fun cancelAppointment(
+        @Path("appointmentId") appointmentId: String,
+        @Body appointment: Appointments
+    ): Call<ResponseBody>
 
-    // Route to approve/confirm an appointment
-    @PUT("{appointmentId}/approve")
-    fun approveAppointment(@Path("appointmentId") appointmentId: String?): Call<ResponseBody?>?
+     // Route to approve/confirm an appointment
+    @PUT("api/appointments/approve/{appointmentId}")
+    fun approveAppointment(
+        @Path("appointmentId") appointmentId: String,
+        @Body appointment: Appointments
+    ): Call<ResponseBody>
 
     // Route for patient notifications
     @GET("api/appointments/notifications/patient")
@@ -72,13 +78,14 @@ interface ApiService {
 
 
 data class Appointments(
-    val date: String,        // Date of appointment
-    val dentist: String,
-    val dentistId: String,   // Unique ID of the dentist
-    val userId: String,     // Unique ID of the client
-    val description: String,  // Brief description of the appointment
-    val slot: String,         // Time slot for the appointment
-    val status: String        // Status of the appointment
+    var date: String = "",        // Date of appointment
+    var dentist: String = "",
+    var dentistId: String = "",   // Unique ID of the dentist
+    var clientUsername: String = "",
+    var userId: String = "",     // Unique ID of the client
+    var description: String = "",  // Brief description of the appointment
+    var slot: String = "",         // Time slot for the appointment
+    var status: String = ""        // Status of the appointment
 )
 
 

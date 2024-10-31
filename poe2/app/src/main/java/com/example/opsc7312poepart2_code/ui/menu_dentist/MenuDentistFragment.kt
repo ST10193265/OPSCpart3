@@ -2,6 +2,7 @@ package com.example.poe2.ui.menu_dentist
 
 import androidx.fragment.app.viewModels
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -22,21 +23,31 @@ class MenuDentistFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_menu_dentist, container, false)
 
         // Initialize the ImageButtons
-        val ibtnBookAppointment: ImageButton = view.findViewById(R.id.ibtnBookAppointment)
+        val ibtnViewApp:  ImageButton = view.findViewById(R.id.ibtnViewApp)
         val ibtnNotifications: ImageButton = view.findViewById(R.id.ibtnNotifications)
         val ibtnSettings: ImageButton = view.findViewById(R.id.ibtnSettings)
         val ibtnLogout: Button = view.findViewById(R.id.btnLogOut)
+        val ibtnMagageApp: ImageButton = view.findViewById(R.id.ibtnMagageApp)
+
+
+        ibtnMagageApp.setOnClickListener {
+            // Navigate to the BookAppointmentFragment using the NavController
+            findNavController().navigate(R.id.action_nav_menu_dentist_to_nav_dentist_app)
+
+        }
 
 
         ibtnLogout.setOnClickListener {
             // Navigate to the BookAppointmentFragment using the NavController
             findNavController().navigate(R.id.action_nav_menu_dentist_to_nav_login_dentist)
+
         }
 
         // Set OnClickListener for the Book Appointment button
-        ibtnBookAppointment.setOnClickListener {
+        ibtnViewApp.setOnClickListener {
             // Navigate to the BookAppointmentFragment using the NavController
-            findNavController().navigate(R.id.action_nav_menu_dentist_to_nav_book_appointment_dentist)
+            findNavController().navigate(R.id.action_nav_menu_dentist_to_nav_view_appointment_dentist)
+
         }
 
         // Set OnClickListener for the Notifications button
