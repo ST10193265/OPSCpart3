@@ -5,9 +5,11 @@ import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ApiService {
 
@@ -37,15 +39,16 @@ interface ApiService {
         @Body appointment: Appointments
     ): Call<ResponseBody>
 
-    // Route for patient notifications
-    @GET("api/appointments/notifications/patient")
+    @GET("api/appointments/notifications/patient/{userId}")
     fun getPatientNotifications(
-
+        @Header("Authorization") authToken: String,
+        @Path("userId") userId: String,
+        @Query("fcm_token") fcmToken: String
     ): Call<NotificationsResponse>
 
     // Route for staff notifications
-    @GET("notifications/staff")
-    fun getStaffNotifications(): Call<ResponseBody?>?
+    @GET("api/appointments/notifications/staff/{userId}")
+    fun getDentistNotifications(): Call<NotificationsResponse>?
 
     // Route to get all confirmed appointments for logged-in patient
     @GET("myappointments/confirmed")
@@ -102,18 +105,19 @@ data class Credentials(
     val email: String,
     val password: String
 )
-
 data class Notification(
     val appointmentId: String,
     val message: String,
     val date: String,
     val time: String,
     val description: String,
-    val status: String
+    val status: String,
+    val priority: Int = 0, // Optional: default priority level
+    val isRead: Boolean = false, // Optional: default read status
+    val fcmToken: String? = null // Optional: FCM token for sending notifications
 )
 
 data class NotificationsResponse(
     val notifications: List<Notification>
 )
-
 

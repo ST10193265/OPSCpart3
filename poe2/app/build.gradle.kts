@@ -137,7 +137,6 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.firebase.functions.ktx)
-    implementation(libs.androidx.legacy.support.v4)
     androidTestImplementation(libs.junit.junit)
     androidTestImplementation(libs.junit.junit)
 
@@ -147,7 +146,5 @@ dependencies {
 
     // Biometric library for Android
     implementation ("androidx.biometric:biometric:1.1.0")
-
-    implementation ("androidx.biometric:biometric:1.2.0-alpha05")
 
 }
