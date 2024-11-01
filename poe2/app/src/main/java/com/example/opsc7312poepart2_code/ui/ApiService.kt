@@ -44,11 +44,6 @@ interface ApiService {
     @GET("api/appointments/notifications/staff/{userId}")
     fun getDentistNotifications(): Call<NotificationsResponse>?
 
-
-    // Route for staff notifications
-    @GET("notifications/staff")
-    fun getStaffNotifications(): Call<ResponseBody?>?
-
     // Route to get all confirmed appointments for logged-in patient
     @GET("myappointments/confirmed")
     fun getConfirmedAppointmentsForPatient(): Call<ResponseBody?>?

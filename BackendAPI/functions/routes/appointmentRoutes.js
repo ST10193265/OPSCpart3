@@ -18,20 +18,20 @@ const { protect } = require('../middleware/authMiddleware'); // Middleware to pr
 router.post('/book', protect, bookAppointment); 
 
 // Route to reschedule an appointment
-router.put('/:appointmentId', protect, rescheduleAppointment);
+router.put('/reschedule/:appointmentId', protect, rescheduleAppointment);
 
 // Route to cancel an appointment
-router.delete('/:appointmentId', protect, cancelAppointment);
+//router.put('/:appointmentId/cancel', protect, cancelAppointment);
+router.put('/cancel/:appointmentId', protect, cancelAppointment);
 
 // Route to approve/confirm an appointment
-router.put('/:appointmentId/approve', protect, approveAppointment);
+router.put('/approve/:appointmentId', protect, approveAppointment);
 
 // Route for patient notifications
 router.get('/notifications/patient/:userId', getPatientNotifications);
 
 // Route for staff notifications
 router.get('/notifications/staff/:userId', protect, getStaffNotifications); 
-
 
 // Route to get all confirmed appointments for logged-in patient
 router.get('/myappointments/confirmed', protect, getConfirmedAppointmentsForPatient);

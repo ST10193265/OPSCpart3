@@ -1,12 +1,49 @@
 const admin = require('../config/db.js'); 
 
-// Book an appointment
+// // Book an appointment
+// const bookAppointment = async (req, res) => {
+//     const { date, dentist, dentistId, description, slot, status } = req.body;
+//     //const userId = req.userId ; 
+
+//     const userId = req.body.userId || req.user?.id || req.user?.clientId || req.body.clientId;
+
+
+//     if (!userId) {
+//         console.error("User ID is missing from request.");
+//         return res.status(400).json({ message: 'User not authenticated' });
+//     }
+
+//     try {
+//         const appointmentId = admin.database().ref('appointments').push().key;
+
+//         const appointment = {
+//             appointmentId,
+//             date,
+//             dentist,
+//             dentistId,
+//             description,
+//             slot,
+//             userId,
+//             status: 'pending',
+//             createdAt: admin.database.ServerValue.TIMESTAMP,
+//         };
+
+//         await admin.database().ref(`appointments/${appointmentId}`).set(appointment);
+
+//         res.status(201).json({
+//             message: 'Appointment booked successfully',
+//             appointmentId,
+//         });
+//     } catch (error) {
+//         console.error("Error booking appointment:", error);
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// };
+
 const bookAppointment = async (req, res) => {
-    const { date, dentist, dentistId, description, slot, status } = req.body;
-    //const userId = req.userId ; 
+    const { date, dentist, dentistId, description, slot, status, clientUsername } = req.body; // added clientUsername
 
     const userId = req.body.userId || req.user?.id || req.user?.clientId || req.body.clientId;
-
 
     if (!userId) {
         console.error("User ID is missing from request.");
@@ -23,6 +60,7 @@ const bookAppointment = async (req, res) => {
             dentistId,
             description,
             slot,
+            clientUsername, // added clientUsername to appointment object
             userId,
             status: 'pending',
             createdAt: admin.database.ServerValue.TIMESTAMP,
@@ -56,10 +94,10 @@ const rescheduleAppointment = async (req, res) => {
 
         const appointment = appointmentSnapshot.val();
 
-        // Check if the logged-in user is allowed to reschedule this appointment
-        if (appointment.userId !== req.user.id) {
-            return res.status(403).json({ message: 'You do not have permission to reschedule this appointment' });
-        }
+        // // Check if the logged-in user is allowed to reschedule this appointment
+        // if (appointment.userId !== req.user.id) {
+        //     return res.status(403).json({ message: 'You do not have permission to reschedule this appointment' });
+        // }
 
         // Update the appointment details and mark it as rescheduled
         await appointmentRef.update({
@@ -80,37 +118,98 @@ const rescheduleAppointment = async (req, res) => {
     }
 };
 
+// // Cancel an appointment
+// const cancelAppointment = async (req, res) => {
+//     const appointmentId = req.params.appointmentId.trim();
+
+//     try {
+//         const appointmentRef = admin.database().ref(`appointments/${appointmentId}`);
+//         const appointmentSnapshot = await appointmentRef.once('value');
+
+//         if (!appointmentSnapshot.exists()) {
+//            return res.status(404).json({ message: 'Appointment not found' });
+           
+//         }
+
+       
+
+//         console.log("Trying to cancel appointment with ID:", appointmentId);
+//         console.log("Appointment exists:", appointmentSnapshot.exists());
+
+//         const appointment = appointmentSnapshot.val();
+
+//         // // Check if the logged-in user is the patient or a staff member
+//         // if (appointment.userId !== req.user.id && req.user.role !== 'staff') {
+//         //     return res.status(403).json({ message: 'You do not have permission to cancel this appointment' });
+//         // }
+
+//         // Mark the appointment as canceled instead of deleting it
+//         await appointmentRef.update({
+//             status: 'canceled',
+//             updatedAt: admin.database.ServerValue.TIMESTAMP, // Add timestamp
+//         });
+
+        
+
+//         res.status(200).json({ message: 'Appointment canceled successfully' });
+
+
+  
+
+//     } catch (error) {
+//         console.error('Error canceling appointment:', error);
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// };
+
 // Cancel an appointment
 const cancelAppointment = async (req, res) => {
-    const appointmentId = req.params.appointmentId.trim();
+    const appointmentId = req.params.appointmentId?.trim();
+
+    console.log("Received appointment ID to cancel:", appointmentId);
+
+    if (!appointmentId) {
+        console.log("No valid appointment ID provided.");
+        return res.status(400).json({ message: 'Invalid appointment ID' });
+    }
 
     try {
         const appointmentRef = admin.database().ref(`appointments/${appointmentId}`);
-        const appointmentSnapshot = await appointmentRef.once('value');
+        console.log(`Attempting to look up appointment with ID: ${appointmentId}`);
 
+        const appointmentSnapshot = await appointmentRef.once('value');
+        
         if (!appointmentSnapshot.exists()) {
+            console.log(`Appointment with ID: ${appointmentId} not found.`);
             return res.status(404).json({ message: 'Appointment not found' });
         }
 
+        console.log("Appointment found, proceeding to cancel.");
         const appointment = appointmentSnapshot.val();
 
-        // Check if the logged-in user is the patient or a staff member
-        if (appointment.userId !== req.user.id && req.user.role !== 'staff') {
-            return res.status(403).json({ message: 'You do not have permission to cancel this appointment' });
-        }
+        // Optional: Uncomment this section to check user permissions
+        // if (appointment.userId !== req.user.id && req.user.role !== 'staff') {
+        //     console.log("Permission denied for user ID:", req.user?.id);
+        //     return res.status(403).json({ message: 'You do not have permission to cancel this appointment' });
+        // }
 
-        // Mark the appointment as canceled instead of deleting it
+        // Update appointment status to 'canceled'
+        console.log("Updating appointment status to 'canceled'.");
         await appointmentRef.update({
             status: 'canceled',
-            updatedAt: admin.database.ServerValue.TIMESTAMP, // Add timestamp
+            updatedAt: admin.database.ServerValue.TIMESTAMP,
         });
 
+        console.log("Appointment successfully canceled.");
         res.status(200).json({ message: 'Appointment canceled successfully' });
+
     } catch (error) {
         console.error('Error canceling appointment:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+
 
 // Approve an appointment
 const approveAppointment = async (req, res) => {
@@ -120,7 +219,10 @@ const approveAppointment = async (req, res) => {
         const appointmentRef = admin.database().ref(`appointments/${appointmentId}`);
         const appointmentSnapshot = await appointmentRef.once('value');
 
+        console.log('Incoming appointmentId:', appointmentId);
+
         if (!appointmentSnapshot.exists()) {
+            console.log(`Appointment not found for ID: ${appointmentId}`);
             return res.status(404).json({ message: 'Appointment not found' });
         }
 
@@ -136,10 +238,10 @@ const approveAppointment = async (req, res) => {
             return res.status(400).json({ message: 'This appointment has been canceled and cannot be approved' });
         }
 
-        // Verify if the logged-in user is a staff member
-        if (req.user.role !== 'staff') {
-            return res.status(403).json({ message: 'You do not have permission to approve this appointment' });
-        }
+        // // Verify if the logged-in user is a staff member
+        // if (req.user.role !== 'staff') {
+        //     return res.status(403).json({ message: 'You do not have permission to approve this appointment' });
+        // }
 
         // Update the appointment status to 'approved'
         await appointmentRef.update({
@@ -156,6 +258,7 @@ const approveAppointment = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
 const getPatientNotifications = async (req, res) => {
     try {
         const userId = req.params.userId || req.user.id;
@@ -270,7 +373,6 @@ const getPatientNotifications = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
-
 
 // Get staff notifications
 const getStaffNotifications = async (req, res) => {
