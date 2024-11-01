@@ -48,6 +48,7 @@ class LoginDentistFragment : Fragment() {
     companion object {
         var loggedInDentistUsername: String? = null // Global variable to store the logged-in username
         var loggedInDentistUserId: String? = null // Global variable to store the logged-in user ID
+        var isBiometricLogin: Boolean = false
     }
 
     override fun onCreateView(
@@ -132,18 +133,24 @@ class LoginDentistFragment : Fragment() {
 
                     Log.d("LoginDentistFragment", "User $username found in the database")
                     val userSnapshot = snapshot.children.first()
-                    val userId = userSnapshot.child("id").getValue(String::class.java).orEmpty()
-                    val role = userSnapshot.child("role").getValue(String::class.java).orEmpty().ifEmpty { "client" }
+                    var userId = userSnapshot.child("id").getValue(String::class.java).orEmpty()
+                    val role = userSnapshot.child("role").getValue(String::class.java).orEmpty().ifEmpty { "dentist" }
 
                     loggedInDentistUsername = username
                     loggedInDentistUserId = snapshot.children.first().key // Get user ID
-                    Log.d("LoginDentistFragment", "Id is: $loggedInDentistUserId")
-                    Log.d("LoginDentistFragment", "Id is: $userId")
+                    //getUserIdFromFirebase(username) // Fetch and store user ID
+                    userId = loggedInDentistUserId.toString()
+
+                    Log.d("LoginDentistFragment", "loggedInDentistUserId is: $loggedInDentistUserId")
+                    Log.d("LoginDentistFragment", "userId is: $userId")
 
                     val biometricAuthenticator = BiometricAuthenticator(requireActivity(), {
                         Log.d("LoginDentistFragment", "Biometric authentication successful for user: $username")
 
-                        val jwtToken = generateJwtToken(userId, "dentist")
+                        isBiometricLogin = true
+                        Log.d("LoginDentistFragment", "isBiometricLogin: $isBiometricLogin")
+
+                        val jwtToken = generateJwtToken(userId, role)
                         Log.d("LoginDentistFragment", "JWT Token generated: $jwtToken")
 
                         Log.d("LoginDentistFragment", "Navigating to client menu after successful authentication")

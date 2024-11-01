@@ -286,6 +286,8 @@
         android:name="com.example.opsc7312poepart2_code.ui.app_dentist.AppDentistFragment"
         android:label="Menu - Manage Appointments"
         tools:layout="@layout/fragment_app_dentist" >
+
+
         <action
             android:id="@+id/action_nav_dentist_app_to_nav_menu_dentist"
             app:destination="@id/nav_menu_dentist" />

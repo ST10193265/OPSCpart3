@@ -9,11 +9,14 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.opsc7312poepart2_code.ui.ApiClient
 import com.example.opsc7312poepart2_code.ui.ApiService
 import com.example.opsc7312poepart2_code.ui.Appointments
 import com.example.opsc7312poepart2_code.ui.login_dentist.LoginDentistFragment
+import com.example.opsc7312poepart2_code.ui.login_dentist.LoginDentistFragment.Companion.isBiometricLogin
 import com.example.opsc7312poepart2_code.ui.login_dentist.LoginDentistFragment.Companion.loggedInDentistUserId
+import com.example.poe2.R
 import com.example.poe2.databinding.FragmentAppDentistBinding
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -59,23 +62,54 @@ class AppDentistFragment : Fragment() {
             // Get the selected appointment ID from the appointmentIdList
             selectedAppointmentId = appointmentIdList[position] // Get the ID from the clicked item
             val appointmentString = appointmentAdapter.getItem(position)
-            Toast.makeText(requireContext(), "Selected: $appointmentString", Toast.LENGTH_SHORT).show()
+
             Log.d("AppDentistFragment", "onItemClick: Appointment selected with ID: $selectedAppointmentId")
         }
 
         binding.btnConfirm.setOnClickListener {
+            if (isBiometricLogin)
+            {
+                approveBookingBio()
+            }
+            else
+            {
+                approveBooking()
+            }
+
             Log.d("AppDentistFragment", "onClick: Confirm button pressed.")
-            approveBooking()
+
         }
 
         binding.btnReschedule.setOnClickListener {
+
+            if (isBiometricLogin)
+            {
+                rescheduleBookingBio()
+            }
+            else
+            {
+                rescheduleBooking()
+            }
             Log.d("AppDentistFragment", "onClick: Reschedule button pressed.")
-            rescheduleBooking()
+
         }
 
         binding.btnCancel.setOnClickListener {
+            if (isBiometricLogin)
+            {
+                cancelBookingBio()
+            }
+            else
+            {
+                cancelBooking()
+            }
             Log.d("AppDentistFragment", "onClick: Reschedule button pressed.")
-            cancelBooking()
+
+        }
+
+        binding.ibtnHome.setOnClickListener {
+            findNavController().navigate(R.id.action_nav_dentist_app_to_nav_menu_dentist)
+            Log.d("AppDentistFragment", "onClick: home button pressed.")
         }
 
         // Retrieve dentist ID and load appointments
@@ -90,7 +124,8 @@ class AppDentistFragment : Fragment() {
     private fun getDentistIdByUsername() {
         val loggedInUsername = LoginDentistFragment.loggedInDentistUsername // Assuming this stores the current dentist's username
 
-        Log.d("AppDentistFragment", "getDentistIdByUsername: Attempting to retrieve dentist ID for user: $loggedInUsername")
+        Log.d("AppDentistFragment", "getDentistIdByUsername: username for user: $loggedInUsername")
+        Log.d("AppDentistFragment", "getDentistIdByUsername:  ID for user: $loggedInDentistUserId")
 
         if (loggedInUsername.isNullOrEmpty()) {
             Log.e("AppDentistFragment", "getDentistIdByUsername: No logged-in dentist username found.")
@@ -99,18 +134,18 @@ class AppDentistFragment : Fragment() {
         }
 
         // Reference to Firebase users table
-        val dbReference = FirebaseDatabase.getInstance().getReference("users")
+        val dbReference = FirebaseDatabase.getInstance().getReference("appointments")
 
-        dbReference.orderByChild("username").equalTo(loggedInUsername).addListenerForSingleValueEvent(object : ValueEventListener {
+        dbReference.orderByChild("dentistId").equalTo(loggedInDentistUserId).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
+                Log.d("AppDentistFragment", "$snapshot")
+
                     if (snapshot.exists()) {
-                        val userSnapshot = snapshot.children.firstOrNull()
-                        val dentistId = userSnapshot?.key ?: "" // Get the unique Firebase ID as dentistId
+                       // val userSnapshot = snapshot.children.firstOrNull()
 
-                        loggedInDentistUserId = dentistId // Assuming this is where you store the dentist ID globally
-                        Toast.makeText(requireContext(), "Dentist ID: $dentistId", Toast.LENGTH_SHORT).show()
 
-                        Log.d("AppDentistFragment", "getDentistIdByUsername: Successfully retrieved Dentist ID: $dentistId")
+
+                        Log.d("AppDentistFragment", "getDentistIdByUsername: Successfully retrieved Dentist ID: $loggedInDentistUserId")
                         fetchAppointments() // Call to fetch appointments after ID retrieval
                     } else {
                         Log.e("AppDentistFragment", "getDentistIdByUsername: Dentist ID not found for username: $loggedInUsername")
@@ -127,14 +162,14 @@ class AppDentistFragment : Fragment() {
 
 
     private fun fetchAppointments() {
-        if (dentistId == null) {
+        if (loggedInDentistUserId == null) {
             Log.e("AppDentistFragment", "fetchAppointments: Dentist ID is null, cannot fetch appointments.")
             return
         }
 
-        Log.d("AppDentistFragment", "fetchAppointments: Fetching appointments for dentist ID: $dentistId")
+        Log.d("AppDentistFragment", "fetchAppointments: Fetching appointments for dentist ID: $loggedInDentistUserId")
 
-        appointmentsDatabase.orderByChild("dentistId").equalTo(dentistId)
+        appointmentsDatabase.orderByChild("dentistId").equalTo(loggedInDentistUserId)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     Log.d("AppDentistFragment", "onDataChange: Retrieved ${snapshot.childrenCount} appointments from database.")
@@ -185,11 +220,11 @@ class AppDentistFragment : Fragment() {
         Log.d("AppDentistFragment", "approveBooking: Approving booking for appointment ID: $selectedAppointmentId")
 
         // Call the API to approve the appointment using appointmentId
-        apiService.approveAppointment(selectedAppointmentId.toString(), Appointments("approved")) // Assuming you want to update the status
+        apiService.approveAppointment(selectedAppointmentId.toString(), Appointments("approved") ) // Assuming you want to update the status
             .enqueue(object : Callback<ResponseBody> {
                 override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                    Toast.makeText(requireContext(), "${response.isSuccessful}", Toast.LENGTH_SHORT).show()
 
+                    Log.d("AppDentistFragment", " response = $response")
                     if (response.isSuccessful) {
                         Toast.makeText(requireContext(), "Booking approved successfully", Toast.LENGTH_SHORT).show()
                         fetchAppointments()
@@ -277,6 +312,151 @@ class AppDentistFragment : Fragment() {
             })
     }
 
+
+    private fun approveBookingBio() {
+        if (selectedAppointmentId == null) {
+            Toast.makeText(requireContext(), "No appointment selected", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val appointmentId = selectedAppointmentId.toString()
+        val appointmentRef = FirebaseDatabase.getInstance().getReference("appointments/$appointmentId")
+
+        // Check if the appointment exists and its current status
+        appointmentRef.get().addOnSuccessListener { appointmentSnapshot ->
+            if (!appointmentSnapshot.exists()) {
+                Toast.makeText(requireContext(), "Appointment not found", Toast.LENGTH_SHORT).show()
+                Log.e("AppDentistFragment", "approveBooking: Appointment not found for ID: $appointmentId")
+                return@addOnSuccessListener
+            }
+
+            val currentStatus = appointmentSnapshot.child("status").value as? String
+            when (currentStatus) {
+                "approved" -> {
+                    Toast.makeText(requireContext(), "This appointment is already confirmed", Toast.LENGTH_SHORT).show()
+                }
+                "canceled" -> {
+                    Toast.makeText(requireContext(), "This appointment has been canceled and cannot be approved", Toast.LENGTH_SHORT).show()
+                }
+                else -> {
+                    // Update the status to 'approved'
+                    val updates = mapOf(
+                        "status" to "approved",
+                        "updatedAt" to ServerValue.TIMESTAMP
+                    )
+                    appointmentRef.updateChildren(updates).addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Toast.makeText(requireContext(), "Booking approved successfully", Toast.LENGTH_SHORT).show()
+                            Log.d("AppDentistFragment", "approveBooking: Successfully approved booking for appointment ID: $appointmentId")
+                            fetchAppointments() // Refresh appointments list
+                        } else {
+                            Toast.makeText(requireContext(), "Failed to approve booking", Toast.LENGTH_SHORT).show()
+                            Log.e("AppDentistFragment", "approveBooking: Failed to update appointment status")
+                        }
+                    }
+                }
+            }
+        }.addOnFailureListener { exception ->
+            Toast.makeText(requireContext(), "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
+            Log.e("AppDentistFragment", "approveBooking: Error fetching appointment - ${exception.message}")
+        }
+    }
+
+    private fun rescheduleBookingBio() {
+        if (selectedAppointmentId == null) {
+            Toast.makeText(requireContext(), "No appointment selected", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val appointmentId = selectedAppointmentId.toString()
+        val appointmentRef = FirebaseDatabase.getInstance().getReference("appointments/$appointmentId")
+
+        // Check if the appointment exists and its current status
+        appointmentRef.get().addOnSuccessListener { appointmentSnapshot ->
+            if (!appointmentSnapshot.exists()) {
+                Toast.makeText(requireContext(), "Appointment not found", Toast.LENGTH_SHORT).show()
+                Log.e("AppDentistFragment", "approveBooking: Appointment not found for ID: $appointmentId")
+                return@addOnSuccessListener
+            }
+
+            val currentStatus = appointmentSnapshot.child("status").value as? String
+            when (currentStatus) {
+                "reschedule" -> {
+                    Toast.makeText(requireContext(), "This appointment is already rescheduled", Toast.LENGTH_SHORT).show()
+                }
+                "canceled" -> {
+                    Toast.makeText(requireContext(), "This appointment has been canceled and cannot be approved", Toast.LENGTH_SHORT).show()
+                }
+                else -> {
+                    // Update the status to 'approved'
+                    val updates = mapOf(
+                        "status" to "reschedule",
+                        "updatedAt" to ServerValue.TIMESTAMP
+                    )
+                    appointmentRef.updateChildren(updates).addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Toast.makeText(requireContext(), "Booking approved successfully", Toast.LENGTH_SHORT).show()
+                            Log.d("AppDentistFragment", "approveBooking: Successfully approved booking for appointment ID: $appointmentId")
+                            fetchAppointments() // Refresh appointments list
+                        } else {
+                            Toast.makeText(requireContext(), "Failed to approve booking", Toast.LENGTH_SHORT).show()
+                            Log.e("AppDentistFragment", "approveBooking: Failed to update appointment status")
+                        }
+                    }
+                }
+            }
+        }.addOnFailureListener { exception ->
+            Toast.makeText(requireContext(), "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
+            Log.e("AppDentistFragment", "approveBooking: Error fetching appointment - ${exception.message}")
+        }
+    }
+
+    private fun cancelBookingBio() {
+        if (selectedAppointmentId == null) {
+            Toast.makeText(requireContext(), "No appointment selected", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val appointmentId = selectedAppointmentId.toString()
+        val appointmentRef = FirebaseDatabase.getInstance().getReference("appointments/$appointmentId")
+
+        // Check if the appointment exists and its current status
+        appointmentRef.get().addOnSuccessListener { appointmentSnapshot ->
+            if (!appointmentSnapshot.exists()) {
+                Toast.makeText(requireContext(), "Appointment not found", Toast.LENGTH_SHORT).show()
+                Log.e("AppDentistFragment", "approveBooking: Appointment not found for ID: $appointmentId")
+                return@addOnSuccessListener
+            }
+
+            val currentStatus = appointmentSnapshot.child("status").value as? String
+            when (currentStatus) {
+                "cancel" -> {
+                    Toast.makeText(requireContext(), "This appointment is already canceled", Toast.LENGTH_SHORT).show()
+                }
+
+                else -> {
+                    // Update the status to 'approved'
+                    val updates = mapOf(
+                        "status" to "cancel",
+                        "updatedAt" to ServerValue.TIMESTAMP
+                    )
+                    appointmentRef.updateChildren(updates).addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Toast.makeText(requireContext(), "Booking approved successfully", Toast.LENGTH_SHORT).show()
+                            Log.d("AppDentistFragment", "approveBooking: Successfully approved booking for appointment ID: $appointmentId")
+                            fetchAppointments() // Refresh appointments list
+                        } else {
+                            Toast.makeText(requireContext(), "Failed to approve booking", Toast.LENGTH_SHORT).show()
+                            Log.e("AppDentistFragment", "approveBooking: Failed to update appointment status")
+                        }
+                    }
+                }
+            }
+        }.addOnFailureListener { exception ->
+            Toast.makeText(requireContext(), "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
+            Log.e("AppDentistFragment", "approveBooking: Error fetching appointment - ${exception.message}")
+        }
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()

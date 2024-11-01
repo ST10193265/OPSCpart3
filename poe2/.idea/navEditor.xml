@@ -8,18 +8,6 @@
             <LayoutPositions>
               <option name="myPositions">
                 <map>
-                  <entry key="appDentistFragment">
-                    <value>
-                      <LayoutPositions>
-                        <option name="myPosition">
-                          <Point>
-                            <option name="x" value="626" />
-                            <option name="y" value="782" />
-                          </Point>
-                        </option>
-                      </LayoutPositions>
-                    </value>
-                  </entry>
                   <entry key="nav_book_app_client1">
                     <value>
                       <LayoutPositions>
@@ -94,6 +82,18 @@
                               </value>
                             </entry>
                           </map>
+                        </option>
+                      </LayoutPositions>
+                    </value>
+                  </entry>
+                  <entry key="nav_dentist_app">
+                    <value>
+                      <LayoutPositions>
+                        <option name="myPosition">
+                          <Point>
+                            <option name="x" value="59" />
+                            <option name="y" value="-424" />
+                          </Point>
                         </option>
                       </LayoutPositions>
                     </value>
@@ -352,12 +352,17 @@
                       <LayoutPositions>
                         <option name="myPosition">
                           <Point>
-                            <option name="x" value="451" />
-                            <option name="y" value="454" />
+                            <option name="x" value="491" />
+                            <option name="y" value="499" />
                           </Point>
                         </option>
                         <option name="myPositions">
                           <map>
+                            <entry key="action_nav_menu_dentist_to_nav_dentist_app">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
                             <entry key="action_nav_menu_dentist_to_nav_login_dentist">
                               <value>
                                 <LayoutPositions />
