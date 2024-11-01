@@ -14,6 +14,7 @@ import com.google.firebase.database.*
 import java.text.SimpleDateFormat
 import java.util.*
 
+
 class BookTimeOffDentistFragment : Fragment() {
 
     // UI elements
@@ -28,7 +29,20 @@ class BookTimeOffDentistFragment : Fragment() {
     private lateinit var database: DatabaseReference
 
     // Store dentist ID
+    // Update the currentDentistId initialization
     private var currentDentistId: String = ""
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // Get dentistId from arguments
+        arguments?.let {
+            currentDentistId = it.getString("dentistId", "")
+            // Log to verify ID is received
+            Log.d("BookTimeOffDentistFragment", "Received dentistId: $currentDentistId")
+        }
+
+
+    }
 
     // Variables to hold selected dates
     private var selectedStartDate: String? = null
@@ -62,6 +76,11 @@ class BookTimeOffDentistFragment : Fragment() {
         }
 
         btnSubmit.setOnClickListener {
+            Log.d("BookTimeOffDentistFragment", "Attempting to submit time off...")
+            if (currentDentistId.isEmpty()) {
+                Toast.makeText(requireContext(), "Error: Dentist ID not found", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             submitTimeOff()
         }
 

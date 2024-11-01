@@ -234,8 +234,8 @@
             app:destination="@id/nav_settings_dentist" />
 
         <action
-            android:id="@+id/action_nav_menu_dentist_to_nav_book_time_off_dentist"
-            app:destination="@id/nav_book_time_off_dentist" />
+            android:id="@+id/action_nav_menu_dentist_to_nav_book_time_off"
+            app:destination="@id/nav_book_time_off" />
 
     </fragment>
 
@@ -257,9 +257,6 @@
         <action
             android:id="@+id/action_nav_book_appointment_dentist_to_nav_menu_dentist"
             app:destination="@id/nav_menu_dentist" />
-        <action
-            android:id="@+id/action_nav_book_appointment_dentist_to_nav_book_time_off_dentist"
-            app:destination="@id/nav_book_time_off_dentist" />
 
     </fragment>
     <fragment
@@ -285,7 +282,7 @@
     </fragment>
 
     <fragment
-        android:id="@+id/nav_book_time_off_dentist"
+        android:id="@+id/nav_book_time_off"
         android:name="com.example.opsc7312poepart2_code.ui.book_time_off_dentist.BookTimeOffDentistFragment"
         android:label="Book Time Off - Dentist"
         tools:layout="@layout/book_time_off">
@@ -293,7 +290,6 @@
         <action
             android:id="@+id/action_nav_book_time_off_to_nav_menu_dentist"
             app:destination="@id/nav_menu_dentist" />
-
 
     </fragment>
 

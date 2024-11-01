@@ -193,6 +193,13 @@ class LoginDentistFragment : Fragment() {
                         loggedInDentistUsername = username
                         getUserIdFromFirebase(username)
 
+                        loggedInDentistUserId = userId // Store the user ID
+
+                        // Create a Bundle to pass the dentist ID
+                        val bundle = Bundle().apply {
+                            putString("dentistId", userId) // Pass the user ID as dentistId
+                        }
+
                         val jwtToken = generateJwtToken(userId, role)
                         saveToken(jwtToken)
                         Log.d("LoginDentistFragment", "JWT Token generated: $jwtToken")

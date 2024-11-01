@@ -32,14 +32,14 @@ interface ApiService {
     fun approveAppointment(@Path("appointmentId") appointmentId: String?): Call<ResponseBody?>?
 
     // Route for patient notifications
-    @GET("api/appointments/notifications/patient")
+    @GET("api/appointments/notifications/patient/{userId}")
     fun getPatientNotifications(
 
     ): Call<NotificationsResponse>
 
     // Route for staff notifications
-    @GET("notifications/staff")
-    fun getStaffNotifications(): Call<ResponseBody?>?
+    @GET("api/appointments/notifications/staff/{userId}")
+    fun getDentistNotifications(): Call<NotificationsResponse>?
 
     // Route to get all confirmed appointments for logged-in patient
     @GET("myappointments/confirmed")
@@ -68,6 +68,16 @@ interface ApiService {
     // Route for password reset functionality
     @POST("forget-password")
     fun forgetPassword(@Body email: String?): Call<ResponseBody?>?
+
+    @POST("api/timeoff/book")
+    fun bookTimeOff(@Body timeOffRequest: TimeOffRequest): Call<TimeOffResponse>
+
+    @GET("api/timeoff/dentist")
+    fun getDentistTimeOff(): Call<List<TimeOffRecord>>
+
+    @DELETE("api/timeoff/{timeOffId}")
+    fun cancelTimeOff(@Path("timeOffId") timeOffId: String): Call<ResponseBody>
+
 }
 
 
@@ -95,18 +105,49 @@ data class Credentials(
     val email: String,
     val password: String
 )
-
 data class Notification(
     val appointmentId: String,
     val message: String,
     val date: String,
     val time: String,
     val description: String,
-    val status: String
+    val status: String,
+    val priority: Int = 0, // Optional: default priority level
+    val isRead: Boolean = false, // Optional: default read status
+    val fcmToken: String? = null // Optional: FCM token for sending notifications
 )
+
 
 data class NotificationsResponse(
     val notifications: List<Notification>
 )
 
+data class TimeOffRequest(
+    val startDate: String,
+    val endDate: String,
+    val reason: String,
+    val dentistId: String
+)
+
+data class TimeOffResponse(
+    val message: String,
+    val timeOffId: String
+)
+
+data class Appointment(
+    val id: String,
+    val date: String,
+    val dentistId: String,
+    val status: String
+)
+
+// Create a TimeOffRecord data class to handle the response
+data class TimeOffRecord(
+    val id: String,
+    val startDate: String,
+    val endDate: String,
+    val reason: String,
+    val status: String,
+    val createdAt: Long
+)
 

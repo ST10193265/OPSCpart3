@@ -1,39 +1,31 @@
 package com.example.poe2.ui.notifications_client
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.ImageButton
-import android.widget.ListView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
+import com.android.volley.Request
+import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.Volley
+import org.json.JSONObject
 import com.example.opsc7312poepart2_code.ui.ApiClient
 import com.example.opsc7312poepart2_code.ui.ApiService
-import com.example.opsc7312poepart2_code.ui.Notification
-import com.example.opsc7312poepart2_code.ui.login_client.LoginClientFragment.Companion.loggedInClientUserId
-import com.example.poe2.R
 import com.example.poe2.databinding.FragmentNotificationsClientBinding
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.functions.FirebaseFunctions
-import com.google.gson.Gson
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.ResponseBody
+import com.example.opsc7312poepart2_code.ui.Notification
+import com.example.opsc7312poepart2_code.ui.NotificationsResponse
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.awaitResponse
 
 class NotificationsClientFragment : Fragment() {
 
@@ -41,19 +33,17 @@ class NotificationsClientFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var apiService: ApiService
-    private lateinit var btnViewNotifications: Button
     private lateinit var notificationsAdapter: ArrayAdapter<String>
     private val notificationsList = mutableListOf<String>()
+    private val FCM_URL = "https://fcm.googleapis.com/fcm/send"
+    private val SERVER_KEY = "YOUR_SERVER_KEY" // Replace with your actual FCM server key
 
-    // Flag to check if notifications have been loaded
-    private var notificationsLoaded = false
-
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentNotificationsClientBinding.inflate(inflater, container, false)
-        val view = binding.root
 
         // Initialize ApiService with context
         apiService = ApiClient.createApiService(requireContext())
@@ -66,84 +56,113 @@ class NotificationsClientFragment : Fragment() {
         )
         binding.notificationsListView.adapter = notificationsAdapter
 
-        // Initialize button and set up the click listener
-        btnViewNotifications = binding.btnViewNotifications
-        btnViewNotifications.setOnClickListener {
-            Log.d("NotificationsClient", "View notifications button clicked")
-            // Load notifications only if they haven't been loaded yet
-            if (!notificationsLoaded) {
-                loadNotifications()
-            } else {
-                Toast.makeText(context, "Notifications already loaded", Toast.LENGTH_SHORT).show()
+        return binding.root
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Fetch notifications from API when the fragment opens
+        fetchNotifications()
+
+        // Register the broadcast receiver for real-time updates
+        requireContext().registerReceiver(
+            notificationReceiver,
+            IntentFilter("FCM_NOTIFICATION"),
+            Context.RECEIVER_NOT_EXPORTED
+        )
+    }
+
+    // Fetch notifications from the API
+    private fun fetchNotifications() {
+        apiService.getPatientNotifications().enqueue(object : Callback<NotificationsResponse> {
+            override fun onResponse(
+                call: Call<NotificationsResponse>,
+                response: Response<NotificationsResponse>
+            ) {
+                if (response.isSuccessful && response.body() != null) {
+                    notificationsList.clear()
+                    notificationsList.addAll(response.body()!!.notifications.map { it.message })
+                    notificationsAdapter.notifyDataSetChanged()
+
+                    // Send push notifications for each notification received
+                    sendPushNotifications(response.body()!!.notifications)
+                } else {
+                    Log.e("NotificationsClient", "Failed to fetch notifications")
+                }
+            }
+
+            override fun onFailure(call: Call<NotificationsResponse>, t: Throwable) {
+                Log.e("NotificationsClient", "API call failed: ${t.message}")
+            }
+        })
+    }
+
+    // Function to send push notifications
+    private fun sendPushNotifications(notifications: List<Notification>) {
+        // Iterate through each notification and send a push notification
+        for (notification in notifications) {
+            val message = notification.message
+            val fcmToken = notification.fcmToken
+            // Call your method to send notification via FCM
+            if (fcmToken != null) {
+                sendFCMMessage(fcmToken, message)
+            }
+        }
+    }
+
+    // Function to send a message via FCM
+    private fun sendFCMMessage(token: String, message: String) {
+        val data = JSONObject()
+        data.put("to", token)
+        data.put("notification", JSONObject().apply {
+            put("title", "New Notification")
+            put("body", message)
+        })
+
+        // Create the JsonObjectRequest
+        val request = object : JsonObjectRequest(
+            Request.Method.POST,
+            FCM_URL,
+            data,
+            { response ->
+                // This is the success listener
+                Log.d("FCM", "Notification sent successfully: $response")
+            },
+            { error ->
+                // This is the error listener
+                Log.e("FCM", "Error sending notification: ${error.message}")
+            }
+        ) {
+            // Add the required headers for FCM
+            override fun getHeaders(): MutableMap<String, String> {
+                val headers = HashMap<String, String>()
+                headers["Authorization"] = "key=$SERVER_KEY" // Use your FCM server key
+                headers["Content-Type"] = "application/json"
+                return headers
             }
         }
 
-        // Home button navigation
-        binding.ibtnHome.setOnClickListener {
-            Log.d("NotificationsClient", "Home button clicked")
-            findNavController().navigate(R.id.action_nav_notifications_client_to_nav_menu_client)
-        }
-
-        return view
+        // Add the request to the RequestQueue
+        Volley.newRequestQueue(requireContext()).add(request)
     }
 
-    private fun loadNotifications() {
-        Log.d("NotificationsClient", "Starting to load notifications")
-
-        // Log the token before making the API call
-        val token = ApiClient.getTokenFromSharedPreferences(requireContext())
-        Log.d("NotificationsClient", "Using token for notifications: $token")
-
-        // Use Coroutine for asynchronous execution
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val response = apiService.getPatientNotifications().awaitResponse()
-                withContext(Dispatchers.Main) {
-                    Log.d("NotificationsClient", "API Response Code: ${response.code()}") // Log response code
-                    if (response.isSuccessful && response.body() != null) {
-                        val apiResponse = response.body()!!
-                        notificationsList.clear()
-
-                        // Add each notification's message to the list
-                        apiResponse.notifications.forEach { notification ->
-                            notificationsList.add(notification.message)
-                            Log.d("NotificationsClient", "Added notification: ${notification.message}")
-                        }
-
-                        // Notify the adapter of data changes
-                        notificationsAdapter.notifyDataSetChanged()
-
-                        // Check if there are no notifications
-                        if (notificationsList.isEmpty()) {
-                            Toast.makeText(context, "No notifications available", Toast.LENGTH_SHORT).show()
-                        } else {
-                            // Set the flag to true indicating notifications are loaded
-                            notificationsLoaded = true
-                        }
-                    } else {
-                        // Handle error response
-                        val error = response.errorBody()?.string() ?: "Unknown error"
-                        Log.e("NotificationsClient", "Failed to load notifications: $error")
-                        Toast.makeText(context, "Failed to load notifications: $error", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            } catch (e: Exception) {
-                // Handle request failure
-                Log.e("NotificationsClient", "Failed to load notifications: ${e.message}")
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Failed to load notifications: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
+    private val notificationReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val message = intent.getStringExtra("message")
+            if (message != null) {
+                notificationsList.add(message)
+                notificationsAdapter.notifyDataSetChanged()
+                Toast.makeText(context, "New notification received", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null // Clear the binding reference to avoid memory leaks
+        _binding = null
+        requireContext().unregisterReceiver(notificationReceiver)
     }
 }
-
-
-
-
 
