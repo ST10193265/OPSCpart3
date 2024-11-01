@@ -27,10 +27,11 @@ router.delete('/:appointmentId', protect, cancelAppointment);
 router.put('/:appointmentId/approve', protect, approveAppointment);
 
 // Route for patient notifications
-router.get('/notifications/patient/:userId', protect, getPatientNotifications);
+router.get('/notifications/patient/:userId', getPatientNotifications);
 
 // Route for staff notifications
-router.get('/notifications/staff', protect, getStaffNotifications); 
+router.get('/notifications/staff/:userId', protect, getStaffNotifications); 
+
 
 // Route to get all confirmed appointments for logged-in patient
 router.get('/myappointments/confirmed', protect, getConfirmedAppointmentsForPatient);

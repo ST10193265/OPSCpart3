@@ -1,4 +1,4 @@
-package com.example.opsc7312poepart2_code
+package com.example.poe2
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -14,7 +14,6 @@ import com.example.poe2.R
 
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
@@ -22,7 +21,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         // Check if message contains a data payload
         remoteMessage.data.isNotEmpty().let {
-            Log.d("FCMService", "Message data payload: " + remoteMessage.data)
+            Log.d("FCMService", "Message data payload: ${remoteMessage.data}")
             sendNotification(remoteMessage.data["message"] ?: "New notification")
         }
 
@@ -34,10 +33,11 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     private fun sendNotification(messageBody: String) {
-        val intent = Intent(this, MainActivity::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        // Renaming this intent variable to avoid conflict
+        val notificationIntent = Intent(this, MainActivity::class.java)
+        notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         val pendingIntent = PendingIntent.getActivity(
-            this, 0, intent, PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
+            this, 0, notificationIntent, PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
         )
 
         val channelId = "YourChannelId"
@@ -65,6 +65,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         Log.d("FCMService", "Refreshed token: $token")
-        // TODO: Implement this method to send the token to your app server if needed.
     }
 }
+
+
