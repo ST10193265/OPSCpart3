@@ -7,12 +7,34 @@ const protect = async (req, res, next) => {
 
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
+
+            // if (!token) {
+            //     return res.status(401).json({ message: 'No token provided' });
+            // }
+        
+            // jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+            //     if (err) {
+            //         if (err.name === 'TokenExpiredError') {
+            //             return res.status(401).json({ message: 'Token expired, please log in again.' });
+            //         }
+            //         return res.status(401).json({ message: 'Failed to authenticate token.' });
+            //     }
+        
+            //     req.userId = decoded.id; // Attach user ID to request
+            //     console.log(decoded.id)
+            //     next();
+            // });
+
             token = req.headers.authorization.split(' ')[1];
             
             // Verify token
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             const { id, role } = decoded; // Extract id and role from token
             console.log("Decoded token ID:", id, "Role:", role);
+
+            req.userId = decoded.id; // Attach user ID to request
+           // console.log(decoded.id)
+            console.log(req.userId)
 
             // Determine collection path based on role
             const collectionPath = role === 'dentists' ? 'dentists' : 'clients';

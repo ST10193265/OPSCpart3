@@ -28,7 +28,7 @@ router.put('/cancel/:appointmentId', protect, cancelAppointment);
 router.put('/approve/:appointmentId', protect, approveAppointment);
 
 // Route for patient notifications
-router.get('/notifications/patient', protect, getPatientNotifications); 
+router.get('/notifications/patient/:userId', getPatientNotifications);
 
 // Route for staff notifications
 router.get('/notifications/staff', protect, getStaffNotifications); 
