@@ -164,6 +164,103 @@ const approveAppointment = async (req, res) => {
     }
 };
 
+// const getPatientNotifications = async (req, res) => {
+//     try {
+//         const userId = req.params.userId || req.user.id;
+//         const now = Date.now();
+//         const oneDayLater = now + 24 * 60 * 60 * 1000;
+//         const fcmToken = req.query.fcm_token;
+
+//         if (!fcmToken) {
+//             return res.status(400).json({ message: 'FCM token is required' });
+//         }
+
+//         const notifications = [];
+
+//         // Fetch all appointments for the logged-in patient within the next 24 hours
+//         const upcomingAppointmentsSnapshot = await admin.database().ref('appointments')
+//             .orderByChild('userId')
+//             .equalTo(userId)
+//             .once('value');
+
+//         const upcomingPromises = [];
+//         upcomingAppointmentsSnapshot.forEach((doc) => {
+//             const appointment = doc.val();
+//             if (appointment.date >= now && appointment.date < oneDayLater && appointment.status === 'approved') {
+//                 const notification = {
+//                     appointmentId: doc.key,
+//                     message: `Reminder: You have a confirmed appointment tomorrow at ${appointment.time}.`,
+//                     date: appointment.date,
+//                     time: appointment.time,
+//                     description: appointment.description,
+//                     status: appointment.status
+//                 });
+//             }
+//         };
+
+//         // Fetch all appointments with status changes (rescheduled, canceled, approved)
+//         const statusChangedAppointmentsSnapshot = await admin.database().ref('appointments')
+//             .orderByChild('userId')
+//             .equalTo(userId)
+//             .once('value');
+
+//         const statusPromises = [];
+//         statusChangedAppointmentsSnapshot.forEach((doc) => {
+//             const appointment = doc.val();
+//             if (['rescheduled', 'canceled', 'approved'].includes(appointment.status)) {
+//                 let message;
+//                 if (appointment.status === 'rescheduled') {
+//                     message = `Your appointment for ${appointment.description} on this date ${appointment.date} has been rescheduled.`;
+//                 } else if (appointment.status === 'canceled') {
+//                     message = `Your appointment for ${appointment.description} on this date ${appointment.date} has been canceled.`;
+//                 } else if (appointment.status === 'approved') {
+//                     message = `Your appointment for ${appointment.description} on this date ${appointment.date} has been confirmed.`;
+//                 }
+
+//                 const notification = {
+//                     appointmentId: doc.key,
+//                     message,
+//                     date: appointment.date,
+//                     time: appointment.time,
+//                     description: appointment.description,
+//                     status: appointment.status
+//                 };
+
+//                 notifications.push(notification);
+//                 statusPromises.push(
+//                     admin.messaging().send({
+//                         token: fcmToken,
+//                         notification: {
+//                             title: "Appointment Update",
+//                             body: message,
+//                         },
+//                         data: {
+//                             appointmentId: String(doc.key),
+//                             time: String(appointment.time),
+//                             description: String(appointment.description)
+//                         }
+//                     }).catch(error => {
+//                         console.error("Error sending status update notification:", error);
+//                     })
+//                 );
+//             }
+//         });
+
+//         // Await all promises to complete sending notifications
+//         await Promise.all([...upcomingPromises, ...statusPromises]);
+
+//         const notificationCount = notifications.length;
+//         if (notificationCount === 0) {
+//             return res.status(404).json({ message: 'No notifications found for this patient' });
+//         }
+
+//         res.status(200).json({ count: notificationCount, notifications });
+//     } catch (error) {
+//         console.error('Error fetching patient notifications:', error);
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// };
+
 const getPatientNotifications = async (req, res) => {
     try {
         const userId = req.params.userId || req.user.id;
@@ -183,7 +280,6 @@ const getPatientNotifications = async (req, res) => {
             .equalTo(userId)
             .once('value');
 
-        const upcomingPromises = [];
         upcomingAppointmentsSnapshot.forEach((doc) => {
             const appointment = doc.val();
             if (appointment.date >= now && appointment.date < oneDayLater && appointment.status === 'approved') {
@@ -194,7 +290,8 @@ const getPatientNotifications = async (req, res) => {
                     time: appointment.time,
                     description: appointment.description,
                     status: appointment.status
-                });
+                };
+                notifications.push(notification); // Added to notifications array
             }
         });
 
@@ -247,7 +344,7 @@ const getPatientNotifications = async (req, res) => {
         });
 
         // Await all promises to complete sending notifications
-        await Promise.all([...upcomingPromises, ...statusPromises]);
+        await Promise.all(statusPromises);
 
         const notificationCount = notifications.length;
         if (notificationCount === 0) {
@@ -257,9 +354,10 @@ const getPatientNotifications = async (req, res) => {
         res.status(200).json({ count: notificationCount, notifications });
     } catch (error) {
         console.error('Error fetching patient notifications:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
+        res.status(500).json({ message: 'Server error' });
+    }
 };
+
 
 // Get staff notifications
 const getStaffNotifications = async (req, res) => {
