@@ -1,5 +1,6 @@
 package com.example.opsc7312poepart2_code.ui.book_app_client2
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -12,6 +13,7 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.fragment.findNavController
 import com.example.poe2.R
 import com.example.opsc7312poepart2_code.ui.Appointments
@@ -202,6 +204,14 @@ class BookAppClient2Fragment : Fragment() {
                 if (response.isSuccessful) {
                     Toast.makeText(requireContext(), "Appointment booked successfully!", Toast.LENGTH_SHORT).show()
                     Log.d("BookAppClient2Fragment", "Appointment booked successfully: ${response.body()}")
+                    // Create and send the local broadcast
+                    val intent = Intent("FCM_NOTIFICATION").apply {
+                        putExtra("message", "Your appointment has been booked successfully!")
+                        putExtra("timestamp", System.currentTimeMillis()) // Add timestamp here
+                    }
+                    context?.let { LocalBroadcastManager.getInstance(it).sendBroadcast(intent) }
+                    Log.d("BookAppClient2Fragment", "Broadcast sent with message: 'Your appointment has been booked successfully!'")
+
                     clearFields()
                 } else {
                     Log.e("BookAppClient2Fragment", "Failed to book appointment: ${response.code()} - ${response.message()}")
@@ -217,6 +227,7 @@ class BookAppClient2Fragment : Fragment() {
                 Toast.makeText(requireContext(), "Error booking appointment: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
+
     }
 
     private fun clearFields() {

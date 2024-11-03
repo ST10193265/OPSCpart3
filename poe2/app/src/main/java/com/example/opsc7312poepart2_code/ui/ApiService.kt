@@ -48,7 +48,11 @@ interface ApiService {
 
     // Route for staff notifications
     @GET("api/appointments/notifications/staff/{userId}")
-    fun getDentistNotifications(): Call<NotificationsResponse>?
+    fun getDentistNotifications(
+        @Header("Authorization") authToken: String,
+        @Path("userId") userId: String,
+        @Query("fcm_token") fcmToken: String
+    ): Call<NotificationsResponse>
 
     // Route to get all confirmed appointments for logged-in patient
     @GET("myappointments/confirmed")

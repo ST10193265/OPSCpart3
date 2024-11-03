@@ -53,8 +53,7 @@ class MenuDentistFragment : Fragment() {
         // Set OnClickListener for the Notifications button
         ibtnNotifications.setOnClickListener {
             // Navigate to the BookAppointmentFragment using the NavController
-       //     findNavController().navigate(R.id.action_nav_menu_dentist_to_nav_notifications_dentist)
-            Toast.makeText(requireContext(), "TO BE IMPLEMENTED", Toast.LENGTH_SHORT).show()
+          findNavController().navigate(R.id.action_nav_menu_dentist_to_nav_notifications_dentist)
 
         }
 
