@@ -31,7 +31,7 @@ router.put('/approve/:appointmentId', protect, approveAppointment);
 router.get('/notifications/patient/:userId', getPatientNotifications);
 
 // Route for staff notifications
-router.get('/notifications/staff/:userId', protect, getStaffNotifications); 
+router.get('/notifications/staff/:userId',  getStaffNotifications); 
 
 // Route to get all confirmed appointments for logged-in patient
 router.get('/myappointments/confirmed', protect, getConfirmedAppointmentsForPatient);

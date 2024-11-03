@@ -323,11 +323,11 @@ const getPatientNotifications = async (req, res) => {
             if (['rescheduled', 'canceled', 'approved'].includes(appointment.status)) {
                 let message;
                 if (appointment.status === 'rescheduled') {
-                    message = `Your appointment has been rescheduled.`;
+                    message = `Your appointment for ${appointment.description} on this date ${appointment.date} has been rescheduled.`;
                 } else if (appointment.status === 'canceled') {
-                    message = `Your appointment has been canceled.`;
+                    message = `Your appointment for ${appointment.description} on this date ${appointment.date} has been canceled.`;
                 } else if (appointment.status === 'approved') {
-                    message = `Your appointment has been confirmed.`;
+                    message = `Your appointment for ${appointment.description} on this date ${appointment.date} has been confirmed.`;
                 }
 
                 const notification = {
@@ -377,115 +377,62 @@ const getPatientNotifications = async (req, res) => {
 // Get staff notifications
 const getStaffNotifications = async (req, res) => {
     try {
-        const userId = req.params.userId || req.user.id; // Use `req.user.id` if `userId` is not passed
-        const now = Date.now();
-        const oneDayLater = now + 24 * 60 * 60 * 1000; // 24 hours later
-        const notifications = [];
+        const now = new Date();
+        const oneDayLater = new Date(now);
+        oneDayLater.setDate(now.getDate() + 1);
 
-        // Fetch the FCM token for the staff member
-        const userTokenSnapshot = await admin.database().ref(`users/${userId}/fcmToken`).once('value');
-        const fcmToken = userTokenSnapshot.val();
-
-        if (!fcmToken) {
-            return res.status(404).json({ message: 'No FCM token found for this user' });
-        }
-
-        // Fetch all upcoming appointments for the staff member within the next 24 hours
-        const upcomingAppointmentsSnapshot = await admin.database().ref('appointments')
-            .orderByChild('status')
-            .equalTo('approved') // Change to 'confirmed' if needed
-            .once('value');
-
-        upcomingAppointmentsSnapshot.forEach(doc => {
-            const appointment = doc.val();
-            if (appointment.date >= now && appointment.date < oneDayLater) {
-                const notification = {
-                    appointmentId: doc.key,
-                    patientId: appointment.userId,
-                    message: `Reminder: ${appointment.userId} has a confirmed appointment tomorrow at ${appointment.time}.`,
-                    date: appointment.date,
-                    time: appointment.time,
-                    description: appointment.description,
-                    status: appointment.status
-                };
-
-                notifications.push(notification);
-
-                // Send a push notification using Firebase Cloud Messaging
-                admin.messaging().send({
-                    token: fcmToken,
-                    notification: {
-                        title: "Appointment Reminder",
-                        body: notification.message,
-                    },
-                    data: {
-                        appointmentId: doc.key,
-                        patientId: appointment.userId,
-                        time: appointment.time,
-                        description: appointment.description
-                    }
-                }).then(response => {
-                    console.log("Successfully sent notification:", response);
-                }).catch(error => {
-                    console.error("Error sending notification:", error);
-                });
-            }
-        });
+        // Fetch all upcoming appointments within the next 24 hours with confirmed status
+        const upcomingAppointments = await Appointment.find({
+            status: 'confirmed',
+            date: { $gte: now, $lt: oneDayLater }
+        }).populate('patient', 'name email'); // Populate patient details
 
         // Fetch appointments with status changes (pending, rescheduled, canceled)
-        const statusChangedAppointmentsSnapshot = await admin.database().ref('appointments')
-            .orderByChild('userId')
-            .equalTo(userId) // Fetch appointments for the specific staff member
-            .once('value');
+        const statusChangedAppointments = await Appointment.find({
+            status: { $in: ['pending', 'rescheduled', 'canceled'] }
+        }).populate('patient', 'name email'); // Populate patient details
 
-        statusChangedAppointmentsSnapshot.forEach(doc => {
-            const appointment = doc.val();
-            if (['pending', 'rescheduled', 'canceled'].includes(appointment.status)) {
-                let message;
+        // Prepare notifications for upcoming confirmed appointments
+        const upcomingNotifications = upcomingAppointments.map(appointment => ({
+            appointmentId: appointment._id,
+            patientId: appointment.patient._id,
+            message: `Reminder: ${appointment.patient.name} has a confirmed appointment tomorrow at ${appointment.time}.`,
+            date: appointment.date,
+            time: appointment.time,
+            description: appointment.description,
+            status: appointment.status
+        }));
 
-                if (appointment.status === 'pending') {
-                    message = `New appointment for ${appointment.userId} is pending confirmation.`;
-                } else if (appointment.status === 'rescheduled') {
-                    message = `An appointment has been rescheduled.`;
-                } else if (appointment.status === 'canceled') {
-                    message = `An appointment has been canceled.`;
-                }
-
-                const notification = {
-                    appointmentId: doc.key,
-                    message,
-                    date: appointment.date,
-                    time: appointment.time,
-                    description: appointment.description,
-                    status: appointment.status
-                };
-
-                notifications.push(notification);
-
-                // Send a push notification for each status change
-                admin.messaging().send({
-                    token: fcmToken,
-                    notification: {
-                        title: "Appointment Update",
-                        body: message,
-                    },
-                    data: {
-                        appointmentId: doc.key,
-                        time: appointment.time,
-                        description: appointment.description
-                    }
-                }).then(response => {
-                    console.log("Successfully sent notification:", response);
-                }).catch(error => {
-                    console.error("Error sending notification:", error);
-                });
+        // Prepare notifications for status changes (pending, rescheduled, canceled)
+        const statusChangeNotifications = statusChangedAppointments.map(appointment => {
+            let message;
+            if (appointment.status === 'pending') {
+                message = `New appointment for ${appointment.patient.name} is pending confirmation.`;
+            } else if (appointment.status === 'rescheduled') {
+                message = `Appointment for ${appointment.patient.name} has been rescheduled.`;
+            } else if (appointment.status === 'canceled') {
+                message = `Appointment for ${appointment.patient.name} has been canceled.`;
             }
+
+            return {
+                appointmentId: appointment._id,
+                patientId: appointment.patient._id,
+                message,
+                date: appointment.date,
+                time: appointment.time,
+                description: appointment.description,
+                status: appointment.status
+            };
         });
 
+        // Combine both types of notifications
+        const notifications = [...upcomingNotifications, ...statusChangeNotifications];
+
+        // Count the number of notifications
         const notificationCount = notifications.length;
 
-        if (notificationCount === 0) {
-            return res.status(404).json({ message: 'No notifications found for this staff member' });
+        if (!notificationCount) {
+            return res.status(404).json({ message: 'No notifications found for staff' });
         }
 
         res.status(200).json({ count: notificationCount, notifications });
@@ -494,6 +441,7 @@ const getStaffNotifications = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
 
 
 // Get confirmed appointments for the logged-in patient

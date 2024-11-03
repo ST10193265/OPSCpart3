@@ -17,23 +17,24 @@ import com.google.firebase.messaging.RemoteMessage
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        Log.d("FCMService", "From: ${remoteMessage.from}")
+        Log.d("FCMService", "Received message from: ${remoteMessage.from}")
 
-        // Check if message contains a data payload
+        // Log data payload if present
         remoteMessage.data.isNotEmpty().let {
             Log.d("FCMService", "Message data payload: ${remoteMessage.data}")
-            sendNotification(remoteMessage.data["message"] ?: "New notification")
+            sendNotification(remoteMessage.data["message"] ?: "New notification from data payload")
         }
 
-        // Check if message contains a notification payload
+        // Log notification payload if present
         remoteMessage.notification?.let {
             Log.d("FCMService", "Message Notification Body: ${it.body}")
-            sendNotification(it.body ?: "New notification")
+            sendNotification(it.body ?: "New notification from notification payload")
         }
     }
 
     private fun sendNotification(messageBody: String) {
-        // Renaming this intent variable to avoid conflict
+        Log.d("FCMService", "Sending notification with message: $messageBody")
+
         val notificationIntent = Intent(this, MainActivity::class.java)
         notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         val pendingIntent = PendingIntent.getActivity(
@@ -42,15 +43,13 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         val channelId = "YourChannelId"
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.redcircle) // Add your notification icon here
+            .setSmallIcon(R.drawable.redcircle)
             .setContentTitle("FCM Notification")
             .setContentText(messageBody)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
 
-        val notificationManager =
-            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 channelId,
@@ -67,5 +66,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         Log.d("FCMService", "Refreshed token: $token")
     }
 }
+
 
 
