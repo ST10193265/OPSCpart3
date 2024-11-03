@@ -9,37 +9,50 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ApiService {
 
     // Route to book an appointment
-    @POST("book")
-    fun bookAppointment(@Body appointment: Appointment?): Call<ResponseBody?>?
+    @POST("api/appointments/book")
+    fun bookAppointment(@Body appointment: Appointments): Call<ResponseBody>
+
 
     // Route to reschedule an appointment
-    @PUT("{appointmentId}")
+    @PUT("api/appointments/reschedule/{appointmentId}")
     fun rescheduleAppointment(
-        @Body appointment: Appointment?,
-        @Path("appointmentId") appointmentId: String?
-    ): Call<ResponseBody?>?
+        @Path("appointmentId") appointmentId: String,
+        @Body appointment: Appointments
+    ): Call<ResponseBody>
 
     // Route to cancel an appointment
-    @DELETE("{appointmentId}")
-    fun cancelAppointment(@Path("appointmentId") appointmentId: String?): Call<ResponseBody?>?
+    @PUT("api/appointments/cancel/{appointmentId}")
+    fun cancelAppointment(
+        @Path("appointmentId") appointmentId: String,
+        @Body appointment: Appointments
+    ): Call<ResponseBody>
 
-    // Route to approve/confirm an appointment
-    @PUT("{appointmentId}/approve")
-    fun approveAppointment(@Path("appointmentId") appointmentId: String?): Call<ResponseBody?>?
+     // Route to approve/confirm an appointment
+    @PUT("api/appointments/approve/{appointmentId}")
+    fun approveAppointment(
+        @Path("appointmentId") appointmentId: String,
+        @Body appointment: Appointments
+    ): Call<ResponseBody>
 
-    // Route for patient notifications
-    @GET("api/appointments/notifications/patient")
+    @GET("api/appointments/notifications/patient/{userId}")
     fun getPatientNotifications(
-
+        @Header("Authorization") authToken: String,
+        @Path("userId") userId: String,
+        @Query("fcm_token") fcmToken: String
     ): Call<NotificationsResponse>
 
     // Route for staff notifications
-    @GET("notifications/staff")
-    fun getStaffNotifications(): Call<ResponseBody?>?
+    @GET("api/appointments/notifications/staff/{userId}")
+    fun getDentistNotifications(
+        @Header("Authorization") authToken: String,
+        @Path("userId") userId: String,
+        @Query("fcm_token") fcmToken: String
+    ): Call<NotificationsResponse>
 
     // Route to get all confirmed appointments for logged-in patient
     @GET("myappointments/confirmed")
@@ -70,13 +83,19 @@ interface ApiService {
     fun forgetPassword(@Body email: String?): Call<ResponseBody?>?
 }
 
-data class Appointment(
-    val id: String?, // Optional for booking; should be provided for rescheduling
-    val patientId: String,
-    val doctorId: String,
-    val dateTime: String, // Consider using a Date type for better handling
-    val notes: String?
+
+data class Appointments(
+    var date: String = "",        // Date of appointment
+    var dentist: String = "",
+    var dentistId: String = "",   // Unique ID of the dentist
+    var clientUsername: String = "",
+    var userId: String = "",     // Unique ID of the client
+    var description: String = "",  // Brief description of the appointment
+    var slot: String = "",         // Time slot for the appointment
+    var status: String = ""        // Status of the appointment
 )
+
+
 
 data class User(
     val id: String?, // Optional for registration
@@ -90,18 +109,19 @@ data class Credentials(
     val email: String,
     val password: String
 )
-
 data class Notification(
     val appointmentId: String,
     val message: String,
     val date: String,
     val time: String,
     val description: String,
-    val status: String
+    val status: String,
+    val priority: Int = 0, // Optional: default priority level
+    val isRead: Boolean = false, // Optional: default read status
+    val fcmToken: String? = null // Optional: FCM token for sending notifications
 )
 
 data class NotificationsResponse(
     val notifications: List<Notification>
 )
-
 

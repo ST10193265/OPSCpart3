@@ -68,8 +68,8 @@
 
         <ListView
             android:id="@+id/notificationsListView"
-            android:layout_width="356dp"
-            android:layout_height="327dp"
+            android:layout_width="362dp"
+            android:layout_height="386dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.339"
@@ -77,15 +77,6 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.73" />
 
-        <Button
-            android:id="@+id/btnViewNotifications"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="105dp"
-            android:layout_marginBottom="30dp"
-            android:text="View Notifications"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+         </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

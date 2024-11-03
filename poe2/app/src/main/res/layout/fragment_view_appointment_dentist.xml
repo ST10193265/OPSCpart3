@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.book_appointment_dentist.BookAppointmentDentistFragment">
+    tools:context=".ui.book_appointment_dentist.ViewAppointmentDentistFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -25,19 +25,19 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.1" />
 
-    <ImageView
-        android:id="@+id/iLogo"
-        android:layout_width="102dp"
-        android:layout_height="58dp"
-        android:src="@drawable/icon"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.029" />
+        <ImageView
+            android:id="@+id/iLogo"
+            android:layout_width="133dp"
+            android:layout_height="120dp"
+            android:src="@drawable/icon"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.017"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.013" />
 
-    <com.applandeo.materialcalendarview.CalendarView
+        <com.applandeo.materialcalendarview.CalendarView
         android:id="@+id/calendarView1"
         android:layout_width="409dp"
         android:layout_height="366dp"
@@ -60,21 +60,20 @@
         android:textSize="18sp"
         android:foregroundTint="@color/black" />
 
-    <TextView
-        android:id="@+id/txtAppName"
-        android:layout_width="128dp"
-        android:layout_height="84dp"
-        android:text="Dentist Diary"
-        android:textAlignment="center"
-        android:textSize="35sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.325"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"
-        />
+        <TextView
+            android:id="@+id/txtAppName"
+            android:layout_width="133dp"
+            android:layout_height="95dp"
+            android:text="Dentist Diary"
+            android:textAlignment="center"
+            android:textSize="35sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.535"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.025" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

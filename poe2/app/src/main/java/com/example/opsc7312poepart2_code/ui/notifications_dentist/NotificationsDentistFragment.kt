@@ -1,10 +1,6 @@
 package com.example.poe2.ui.notifications_dentist
 
-import com.example.opsc7312poepart2_code.ui.login_dentist.LoginDentistFragment.Companion.loggedInDentistUserId
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -12,180 +8,160 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import android.widget.ImageButton
-import android.widget.ListView
 import android.widget.Toast
-import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
-
-import com.example.poe2.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import android.content.BroadcastReceiver
+import android.content.Intent
+import android.content.IntentFilter
+import android.widget.ImageButton
+import androidx.annotation.RequiresApi
+import androidx.navigation.fragment.findNavController
+import com.android.volley.Request
+import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.Volley
+import org.json.JSONObject
+import com.example.opsc7312poepart2_code.ui.ApiClient
+import com.example.opsc7312poepart2_code.ui.ApiService
+import com.example.opsc7312poepart2_code.ui.NotificationsResponse
+import com.example.opsc7312poepart2_code.ui.login_client.LoginClientFragment.Companion.loggedInClientUserId
+import com.example.opsc7312poepart2_code.ui.login_dentist.LoginDentistFragment.Companion.loggedInDentistUserId
+import com.example.poe2.R
+import com.example.poe2.databinding.FragmentNotificationsDentistBinding
+import com.google.firebase.messaging.FirebaseMessaging
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class NotificationsDentistFragment : Fragment() {
 
-    private lateinit var database: DatabaseReference
+    private var _binding: FragmentNotificationsDentistBinding? = null
+    private val binding get() = _binding!!
+    private lateinit var ibtnHome: ImageButton
+    private lateinit var apiService: ApiService
+    private lateinit var notificationsAdapter: ArrayAdapter<String>
+    private val notificationsList = mutableListOf<String>()
+    private var fcmToken: String? = null
 
-    private val appointmentList = mutableListOf<String>()
-    private lateinit var appointmentAdapter: ArrayAdapter<String>
-    private lateinit var listView: ListView
-    private val notificationPermissionRequestCode = 1001
-
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        _binding = FragmentNotificationsDentistBinding.inflate(inflater, container, false)
         val view = inflater.inflate(R.layout.fragment_notifications_dentist, container, false)
 
-        // Initialize Firebase Database reference
-        database = FirebaseDatabase.getInstance().getReference("appointments")
+        // Initialize ApiService with context
+        apiService = ApiClient.createApiService(requireContext())
 
-        // Get the logged-in dentist ID
-        loggedInDentistUserId = getLoggedInDentistId()
+        // Initialize UI elements from layout
+        ibtnHome = view.findViewById(R.id.ibtnHome)
 
-        // Initialize views
-        val ibtnHome: ImageButton = view.findViewById(R.id.ibtnHome)
-        listView = view.findViewById(R.id.appointmentsListView)
+        // Initialize the ListView adapter
+        notificationsAdapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_list_item_1,
+            notificationsList
+        )
+        binding.appointmentsListView.adapter = notificationsAdapter
 
-        // Set up the ListView adapter
-        appointmentAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, appointmentList)
-        listView.adapter = appointmentAdapter
+        // Fetch FCM token in the background
+        fetchFcmToken()
 
-        // Set the home button listener to navigate to the main menu
+        // Set up click listeners
         ibtnHome.setOnClickListener {
-            findNavController().navigate(R.id.action_nav_notifications_dentist_to_nav_menu_dentist)
+            navigateToHome()
         }
 
-        // Start listening for new appointments for this dentist
-        if ( loggedInDentistUserId != null) {
-            listenForNewAppointments( loggedInDentistUserId!!)
-        } else {
-            Toast.makeText(requireContext(), "Dentist not logged in.", Toast.LENGTH_SHORT).show()
-        }
-
-        return view
+        return binding.root
     }
 
-    private fun listenForNewAppointments(dentistId: String) {
-        database.addChildEventListener(object : ChildEventListener {
-            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-                val appointmentDentistId = snapshot.child("dentistId").getValue(String::class.java)
-                if (appointmentDentistId == dentistId) {
-                    val appointmentDate = snapshot.child("date").getValue(String::class.java) ?: "N/A"
-                    val appointmentSlot = snapshot.child("slot").getValue(String::class.java) ?: "N/A"
-                    val appointmentDescription = snapshot.child("description").getValue(String::class.java) ?: "N/A"
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-                    val appointmentDetails = "Date: $appointmentDate, Slot: $appointmentSlot, Description: $appointmentDescription"
-
-                    // Add the new appointment to the list and notify the adapter
-                    appointmentList.add(appointmentDetails)
-                    appointmentAdapter.notifyDataSetChanged()
-
-                    alertDentistNewAppointment(appointmentDate, appointmentSlot, appointmentDescription)
-                }
-            }
-
-            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-                // Handle changes in appointments if needed
-            }
-
-            override fun onChildRemoved(snapshot: DataSnapshot) {
-                // Handle removal of appointments if needed
-            }
-
-            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
-                // Handle moved appointments if needed
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("NotificationsDentistFragment", "Failed to listen for appointments: ${error.message}")
-            }
-        })
+        // Register the broadcast receiver for real-time updates
+        requireContext().registerReceiver(
+            notificationReceiver,
+            IntentFilter("FCM_NOTIFICATION"),
+            Context.RECEIVER_NOT_EXPORTED
+        )
     }
 
-    private fun alertDentistNewAppointment(date: String, slot: String, description: String) {
-        val message = "New Appointment on $date at $slot: $description"
-        Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
-
-        // Check if notification permission is granted
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                android.Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            // If permission is granted, send notification
-            sendNotification(message)
-        } else {
-            // Request notification permission
-            requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), notificationPermissionRequestCode)
+    // Fetch the FCM token for the dentist
+    private fun fetchFcmToken() {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                fcmToken = task.result
+                fetchNotifications() // Fetch notifications once token is available
+            } else {
+                Log.e("FCM", "Failed to retrieve FCM Token")
+            }
         }
     }
 
-    private fun sendNotification(message: String) {
-        // Create the notification channel if required
-        createNotificationChannel()
+    // Fetch notifications from the server
+    private fun fetchNotifications() {
+        val dentistId = loggedInDentistUserId
+        val sharedPref = requireActivity().getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+        val token = sharedPref.getString("jwt_token", null)
+        val authToken = token?.let { "$it" }
 
-        // Build the notification
-        val notificationBuilder = NotificationCompat.Builder(requireContext(), "APPOINTMENTS_CHANNEL_ID")
-            .setSmallIcon(R.drawable.redcircle) // Replace with your actual app icon
-            .setContentTitle("New Appointment")
-            .setContentText(message)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+        if (dentistId != null && fcmToken != null) {
+            if (authToken != null) {
+                apiService.getDentistNotifications(authToken, dentistId, fcmToken!!).enqueue(object : Callback<NotificationsResponse> {
+                    override fun onResponse(call: Call<NotificationsResponse>, response: Response<NotificationsResponse>) {
+                        if (response.isSuccessful && response.body() != null) {
+                            val notifications = response.body()!!.notifications
+                            notificationsList.clear()
+                            notificationsList.addAll(notifications.map { it.message })
+                            notificationsAdapter.notifyDataSetChanged()
+                        } else {
+                            Log.e("NotificationsDentist", "Failed to fetch notifications")
+                        }
+                    }
 
-        // Ensure that permission is checked before calling notify
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                android.Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            with(NotificationManagerCompat.from(requireContext())) {
-                notify(1, notificationBuilder.build())
+                    override fun onFailure(call: Call<NotificationsResponse>, t: Throwable) {
+                        Log.e("NotificationsDentist", "API call failed: ${t.message}")
+                    }
+                })
             }
         } else {
-            // Log or handle the case where the permission is not available
-            Toast.makeText(requireContext(), "Notification permission not granted.", Toast.LENGTH_SHORT).show()
+            Log.e("NotificationsDentist", "Cannot fetch notifications: Missing DentistId or FCM Token")
         }
     }
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "Appointments"
-            val descriptionText = "Notifications for new appointments"
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val channel = NotificationChannel("APPOINTMENTS_CHANNEL_ID", name, importance).apply {
-                description = descriptionText
+
+    // Broadcast receiver for handling notifications
+    private val notificationReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val message = intent.getStringExtra("message")
+            if (message != null) {
+                notificationsList.add(message)
+                notificationsAdapter.notifyDataSetChanged()
+                Toast.makeText(context, "New notification received", Toast.LENGTH_SHORT).show()
             }
-
-            val notificationManager: NotificationManager =
-                requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
         }
     }
 
+    // Method to get the logged-in dentist's ID
     private fun getLoggedInDentistId(): String? {
         return FirebaseAuth.getInstance().currentUser?.uid
     }
 
-    // Handle the result of the permission request
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == notificationPermissionRequestCode) {
-            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                // Permission was granted, re-send the notification
-                sendNotification("New Appointment Available")
-            } else {
-                Toast.makeText(requireContext(), "Notification permission denied.", Toast.LENGTH_SHORT).show()
-            }
-        }
+    private fun navigateToHome() {
+        findNavController().navigate(R.id.action_nav_notifications_dentist_to_nav_menu_dentist)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+        requireContext().unregisterReceiver(notificationReceiver)
     }
 }
+
+

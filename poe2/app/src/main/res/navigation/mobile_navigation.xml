@@ -70,12 +70,13 @@
         android:name="com.example.opsc7312poepart2_code.ui.login_dentist.LoginDentistFragment"
         android:label="Login - Dentist"
         tools:layout="@layout/fragment_login_dentist" >
-        <action
-            android:id="@+id/action_nav_login_dentist_to_nav_menu_dentist"
-            app:destination="@id/nav_menu_dentist" />
+
         <action
             android:id="@+id/action_nav_login_dentist_to_nav_forget_password_dentist"
             app:destination="@id/nav_forget_password_dentist" />
+        <action
+            android:id="@+id/action_nav_login_dentist_to_nav_menu_dentist"
+            app:destination="@id/nav_menu_dentist" />
     </fragment>
 
     <fragment
@@ -152,9 +153,12 @@
         <action
             android:id="@+id/action_nav_book_app_client1_to_nav_book_app_client2"
             app:destination="@id/nav_book_app_client2" />
-
+        <action
+            android:id="@+id/action_nav_book_app_client1_to_nav_dentist_maps"
+            app:destination="@id/nav_dentist_maps" />
 
     </fragment>
+
 
     <fragment
         android:id="@+id/nav_book_app_client2"
@@ -223,12 +227,16 @@
         <action
             android:id="@+id/action_nav_menu_dentist_to_nav_notifications_dentist"
             app:destination="@id/nav_notifications_dentist" />
-        <action
-            android:id="@+id/action_nav_menu_dentist_to_nav_book_appointment_dentist"
-            app:destination="@id/nav_book_appointment_dentist" />
+
         <action
             android:id="@+id/action_nav_menu_dentist_to_nav_settings_dentist"
             app:destination="@id/nav_settings_dentist" />
+        <action
+            android:id="@+id/action_nav_menu_dentist_to_nav_view_appointment_dentist"
+            app:destination="@id/nav_view_appointment_dentist" />
+        <action
+            android:id="@+id/action_nav_menu_dentist_to_nav_dentist_app"
+            app:destination="@id/nav_dentist_app" />
 
     </fragment>
 
@@ -243,12 +251,12 @@
 
     </fragment>
     <fragment
-        android:id="@+id/nav_book_appointment_dentist"
-        android:name="com.example.poe2.ui.book_appointment_dentist.BookAppointmentDentistFragment"
-        android:label="Menu - Book Appointment"
-        tools:layout="@layout/fragment_book_appointment_dentist" >
+        android:id="@+id/nav_view_appointment_dentist"
+        android:name="com.example.poe2.ui.book_appointment_dentist.ViewAppointmentDentistFragment"
+        android:label="Menu - View Appointment"
+        tools:layout="@layout/fragment_view_appointment_dentist" >
         <action
-            android:id="@+id/action_nav_book_appointment_dentist_to_nav_menu_dentist"
+            android:id="@+id/action_nav_view_appointment_dentist_to_nav_menu_dentist"
             app:destination="@id/nav_menu_dentist" />
 
     </fragment>
@@ -263,6 +271,27 @@
 
     </fragment>
 
+    <fragment
+        android:id="@+id/nav_dentist_maps"
+        android:name="com.example.opsc7312poepart2_code.ui.clients_dentist_map.ClientDentistMapFragment"
+        android:label="Clients Dentist Map"
+        tools:layout="@layout/fragment_dentist_map" >
+        <action
+            android:id="@+id/action_nav_dentist_maps_to_nav_book_app_client1"
+            app:destination="@id/nav_book_app_client1" />
+
+    </fragment>
+    <fragment
+        android:id="@+id/nav_dentist_app"
+        android:name="com.example.opsc7312poepart2_code.ui.app_dentist.AppDentistFragment"
+        android:label="Menu - Manage Appointments"
+        tools:layout="@layout/fragment_app_dentist" >
+
+
+        <action
+            android:id="@+id/action_nav_dentist_app_to_nav_menu_dentist"
+            app:destination="@id/nav_menu_dentist" />
+    </fragment>
 
 
 </navigation>

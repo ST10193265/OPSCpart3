@@ -8,7 +8,7 @@
 
 
     <string name="menu_home">Home</string>
- <string name="change_language">Change Language:</string>
+    <string name="change_language">Change Language:</string>
     <string name="change_address">Change Address:</string>
     <string name="settings" translatable="false">Settings</string>
     <string name="change_distance_units">Change Distance Units:</string>
@@ -43,4 +43,8 @@
     <string name="date">Please select a date:</string>
     <string name="time">Available Time:</string>
     <string name="description">Description:</string>
+    <string name="appointmentsFilter">(List filtered according to user settings distance preference)</string>
+    <string name="appointmentsMaps">View dentists on map (Unfiltered)</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
