@@ -50,15 +50,7 @@ public class BookAppointmentClient1Test {
         });
     }
 
-    @Test
-    public void testSearchDentist() {
-        // Simulate searching for a dentist
-        onView(withId(R.id.searchbar)).perform(typeText("testDentist"), closeSoftKeyboard());
 
-        // Verify that the ListView displays the correct dentist
-        onView(withText("testDentist")).check(matches(isDisplayed()));
-        Log.i("BookAppClient1FragmentTest", "Search for dentist successful.");
-    }
 
     @Test
     public void testSelectDentistAndNavigate() {

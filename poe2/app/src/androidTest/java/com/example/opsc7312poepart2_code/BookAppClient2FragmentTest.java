@@ -57,7 +57,7 @@ public class BookAppClient2FragmentTest {
         onView(withId(R.id.txtSelectedDentist)).check(matches(isDisplayed()));
         onView(withId(R.id.etxtDescription)).check(matches(isDisplayed()));
         onView(withId(R.id.btnBook)).check(matches(isDisplayed()));
-        onView(withId(R.id.btnDate)).check(matches(isDisplayed()));
+        onView(withId(R.id.calendar)).check(matches(isDisplayed()));
         onView(withId(R.id.btnCancel)).check(matches(isDisplayed()));
         onView(withId(R.id.ibtnHome)).check(matches(isDisplayed()));
     }
@@ -82,7 +82,7 @@ public class BookAppClient2FragmentTest {
     @Test
     public void testDateSelection() {
         // Simulate clicking the date button to select a date
-        onView(withId(R.id.btnDate)).perform(click());
+        onView(withId(R.id.calendar)).perform(click());
 
         // Since DatePickerDialog is shown, additional checks might involve mocking user interaction
         // For simplicity, we won't simulate date picking here, as Espresso does not handle dialogs well.
