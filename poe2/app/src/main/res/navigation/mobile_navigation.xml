@@ -237,6 +237,9 @@
         <action
             android:id="@+id/action_nav_menu_dentist_to_nav_dentist_app"
             app:destination="@id/nav_dentist_app" />
+        <action
+            android:id="@+id/action_nav_menu_dentist_to_bookTimeOffFragment"
+            app:destination="@id/bookTimeOffFragment" />
 
     </fragment>
 
@@ -292,6 +295,10 @@
             android:id="@+id/action_nav_dentist_app_to_nav_menu_dentist"
             app:destination="@id/nav_menu_dentist" />
     </fragment>
+    <fragment
+        android:id="@+id/bookTimeOffFragment"
+        android:name="com.example.opsc7312poepart2_code.ui.book_time_off.BookTimeOffFragment"
+        android:label="BookTimeOffFragment" />
 
 
 </navigation>
