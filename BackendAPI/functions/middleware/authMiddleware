@@ -5,10 +5,9 @@ const admin = require('../config/db.js');
 const protect = async (req, res, next) => {
     let token;
 
-    if (req.headers.authorization) {
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
-            // Use the Authorization header directly without the "Bearer" prefix
-            token = req.headers.authorization; // This will be just the token value
+            token = req.headers.authorization.split(' ')[1];
             
             // Verify token
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -40,5 +39,4 @@ const protect = async (req, res, next) => {
 
 module.exports = {
     protect,
-
 };
