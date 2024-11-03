@@ -1,6 +1,5 @@
 package com.example.opsc7312poepart2_code.ui.book_time_off
 
-import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,28 +7,37 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import com.example.opsc7312poepart2_code.ui.BookTimeOff
+import com.example.poe2.R
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import java.text.SimpleDateFormat
+import java.util.*
 import com.example.opsc7312poepart2_code.ui.login_dentist.LoginDentistFragment
 import com.example.opsc7312poepart2_code.ui.login_dentist.LoginDentistFragment.Companion.isBiometricLogin
-import com.example.poe2.R
-import com.google.firebase.database.FirebaseDatabase
-import java.util.*
 
 class BookTimeOffFragment : Fragment() {
 
     private lateinit var btnStartDate: Button
     private lateinit var btnEndDate: Button
+    private lateinit var btnSubmit: Button
+    private lateinit var btnHome: ImageButton
+    private lateinit var btnCancel: Button
     private lateinit var txtStartDate: TextView
     private lateinit var txtEndDate: TextView
     private lateinit var etxtReason: EditText
-    private lateinit var btnSubmit: Button // Submit button
-    private lateinit var btnCancel: Button // Cancel button
 
-    private var startDateMillis: Long = 0
-    private var endDateMillis: Long = 0
-    private var dentistId: String? = LoginDentistFragment.loggedInDentistUserId // Get the dentist ID from the LoginDentistFragment
+    private lateinit var database: DatabaseReference
+
+    private var selectedStartDate: String = ""
+    private var selectedEndDate: String = ""
+
+    private var dentistId: String? = LoginDentistFragment.loggedInDentistUserId
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -37,96 +45,75 @@ class BookTimeOffFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_book_time_off, container, false)
 
+        // Initialize views
         btnStartDate = view.findViewById(R.id.btnStartDate)
         btnEndDate = view.findViewById(R.id.btnEndDate)
+        btnSubmit = view.findViewById(R.id.btnSubmit)
+        btnCancel = view.findViewById(R.id.btnCancel)
+        btnHome = view.findViewById(R.id.ibtnHome)
         txtStartDate = view.findViewById(R.id.txtStartDate)
         txtEndDate = view.findViewById(R.id.txtEndDate)
         etxtReason = view.findViewById(R.id.etxtReason)
-        btnSubmit = view.findViewById(R.id.btnSubmit) // Initialize submit button
-        btnCancel = view.findViewById(R.id.btnCancel) // Initialize cancel button
 
+        // Initialize Firebase Database reference
+        database = FirebaseDatabase.getInstance().getReference("booktimeoff")
+
+        // Set onClick listeners
         btnStartDate.setOnClickListener { showDatePickerDialog(true) }
         btnEndDate.setOnClickListener { showDatePickerDialog(false) }
-        btnSubmit.setOnClickListener { submitTimeOff() } // Handle submission
-        btnCancel.setOnClickListener { clearFields() } // Handle cancel
+        btnSubmit.setOnClickListener { submitTimeOffRequest() }
+        btnCancel.setOnClickListener { requireActivity().onBackPressed() }
+        btnHome.setOnClickListener{ findNavController().navigate(R.id.action_bookTimeOffFragment_to_nav_menu_dentist)}
 
-        // If logged in using biometrics, set the dentistId accordingly
-        if (isBiometricLogin) {
-            dentistId = LoginDentistFragment.loggedInDentistUserId // Ensure dentistId is available
-        }
 
         return view
     }
 
-    @SuppressLint("StringFormatInvalid")
     private fun showDatePickerDialog(isStartDate: Boolean) {
         val calendar = Calendar.getInstance()
-        val datePickerDialog = DatePickerDialog(requireContext(), { _, year, month, dayOfMonth ->
-            val selectedDate = Calendar.getInstance()
-            selectedDate.set(year, month, dayOfMonth)
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH)
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
 
-            if (isStartDate) {
-                startDateMillis = selectedDate.timeInMillis
-                txtStartDate.text = getString(R.string.date, dayOfMonth, month + 1, year)
-            } else {
-                endDateMillis = selectedDate.timeInMillis
-                txtEndDate.text = getString(R.string.date, dayOfMonth, month + 1, year)
-            }
-
-            validateDates()
-        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
-
+        val datePickerDialog = DatePickerDialog(
+            requireContext(),
+            { _, selectedYear, selectedMonth, selectedDay ->
+                val date = String.format("%02d/%02d/%d", selectedDay, selectedMonth + 1, selectedYear)
+                if (isStartDate) {
+                    selectedStartDate = date
+                    txtStartDate.text = date
+                } else {
+                    selectedEndDate = date
+                    txtEndDate.text = date
+                }
+            },
+            year, month, day
+        )
         datePickerDialog.show()
     }
 
-    private fun validateDates() {
-        // Prevent booking if the start date is after the end date
-        if (startDateMillis > endDateMillis && endDateMillis != 0L) {
-            etxtReason.error = "Start date must be before end date."
-        } else {
-            etxtReason.error = null // Clear error if valid
-        }
-    }
-
-    private fun submitTimeOff() {
-        // Collect the data
+    private fun submitTimeOffRequest() {
         val reason = etxtReason.text.toString()
-        if (startDateMillis == 0L || endDateMillis == 0L || reason.isEmpty()) {
-            // Show error if dates or reason are invalid
-            if (reason.isEmpty()) etxtReason.error = "Please provide a reason."
+        if (selectedStartDate.isEmpty() || selectedEndDate.isEmpty() || reason.isEmpty()) {
+            Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Prepare the booking data, including the dentist ID
-        val bookingData = mapOf(
-            "dentistId" to dentistId, // Use dentist ID from LoginDentistFragment
-            "startDate" to startDateMillis,
-            "endDate" to endDateMillis,
-            "reason" to reason
-        )
+        // Create BookTimeOff object
+        val dentistId = LoginDentistFragment.loggedInDentistUserId
+        val timeOffRequest = BookTimeOff(dentistId, selectedStartDate, selectedEndDate, reason)
 
-        // Reference to Firebase Realtime Database
-        val database = FirebaseDatabase.getInstance().reference
-        database.child("timeOffBookings").push().setValue(bookingData)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    // Handle success, e.g., show a success message
-                    Toast.makeText(context, "Time off booked successfully", Toast.LENGTH_SHORT).show()
-                    clearFields() // Clear fields after successful booking
-                } else {
-                    // Handle failure
-                    Toast.makeText(context, "Failed to book time off", Toast.LENGTH_SHORT).show()
-                }
+        // Save to Firebase
+        database.push().setValue(timeOffRequest)
+            .addOnSuccessListener {
+                Toast.makeText(requireContext(), "Time off request submitted successfully", Toast.LENGTH_SHORT).show()
+                // Optionally reset the fields
+                txtStartDate.text = ""
+                txtEndDate.text = ""
+                etxtReason.text.clear()
             }
-    }
-
-    private fun clearFields() {
-        // Clear all input fields and reset dates
-        startDateMillis = 0
-        endDateMillis = 0
-        txtStartDate.text = ""
-        txtEndDate.text = ""
-        etxtReason.text.clear()
-        etxtReason.error = null // Clear any error messages
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "Failed to submit request", Toast.LENGTH_SHORT).show()
+            }
     }
 }

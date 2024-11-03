@@ -298,7 +298,11 @@
     <fragment
         android:id="@+id/bookTimeOffFragment"
         android:name="com.example.opsc7312poepart2_code.ui.book_time_off.BookTimeOffFragment"
-        android:label="BookTimeOffFragment" />
+        android:label="BookTimeOffFragment" >
+        <action
+            android:id="@+id/action_bookTimeOffFragment_to_nav_menu_dentist"
+            app:destination="@id/nav_menu_dentist" />
+    </fragment>
 
 
 </navigation>
