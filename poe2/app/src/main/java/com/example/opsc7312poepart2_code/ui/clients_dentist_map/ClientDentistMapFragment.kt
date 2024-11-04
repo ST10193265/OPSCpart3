@@ -120,6 +120,8 @@ class ClientDentistMapFragment : Fragment(), OnMapReadyCallback {
             // Log.e(TAG, "Geocoding error: ${e.message}")
         }
     }
+    // The code above uses the Geocoder class to convert an address into coordinates.
+    // https://developer.android.com/reference/android/location/Geocoder
 
     private fun showUserLocation() {
         if (ContextCompat.checkSelfPermission(

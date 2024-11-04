@@ -87,6 +87,8 @@ class ForgetPasswordDentistFragment : Fragment() {
         }
         binding.etxtNewPassword.setSelection(binding.etxtNewPassword.text.length) // Set cursor to end
     }
+    // code above was taken and adapted from Andriod Developers.
+    // https://developer.android.com/reference/android/widget/EditText#attr_android:inputType
 
     // Function to reset the password
     private fun resetPassword(username: String, email: String, newPassword: String) {

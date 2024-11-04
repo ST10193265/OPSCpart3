@@ -132,6 +132,8 @@ class CalendarClientFragment : Fragment() {
             }
         })
     }
+    // The logic to load appointments is adapted from Firebase documentation
+    // https://firebase.google.com/docs/database/android/read-and-write
 
     // Function to highlight days on the calendar that have appointments
     private fun highlightAppointmentDays() {
@@ -155,4 +157,8 @@ class CalendarClientFragment : Fragment() {
         // Set the events on the CalendarView
         calendarView.setEvents(events)
     }
+    // The logic for handling dates and events is adapted from various online resources
+// Java SimpleDateFormat documentation: https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html
+
+
 }

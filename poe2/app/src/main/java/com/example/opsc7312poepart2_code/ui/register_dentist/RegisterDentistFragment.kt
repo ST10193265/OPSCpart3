@@ -205,18 +205,18 @@ class RegisterDentistFragment : Fragment() {
         Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
     }
 
- private fun setupAutoCompleteForAddress() {
+    private fun setupAutoCompleteForAddress() {
         val autoCompleteAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, placeSuggestions)
         binding.etxtAddress.setAdapter(autoCompleteAdapter)
 
         binding.etxtAddress.setOnItemClickListener { parent, _, position, _ ->
-           val selectedPlace = parent.getItemAtPosition(position) as String
+            val selectedPlace = parent.getItemAtPosition(position) as String
             isAddressValid = true
             findPlace(selectedPlace)
         }
 
         binding.etxtAddress.addTextChangedListener(object : TextWatcher {
-           override fun afterTextChanged(s: Editable?) {
+            override fun afterTextChanged(s: Editable?) {
                 if (!s.isNullOrEmpty()) {
                     fetchPlaceSuggestions(s.toString())
                     isAddressValid = false
@@ -233,11 +233,11 @@ class RegisterDentistFragment : Fragment() {
             .setQuery(query)
             .build()
 
-       placesClient.findAutocompletePredictions(request).addOnSuccessListener { response ->
+        placesClient.findAutocompletePredictions(request).addOnSuccessListener { response ->
             placeSuggestions = response.autocompletePredictions.map { it.getFullText(null).toString() }
             val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, placeSuggestions)
             binding.etxtAddress.setAdapter(adapter)
-           adapter.notifyDataSetChanged()
+            adapter.notifyDataSetChanged()
         }
     }
 
@@ -248,9 +248,11 @@ class RegisterDentistFragment : Fragment() {
             if (addressList.isNotEmpty()) {
                 val address = addressList[0]
                 destinationLatLng = LatLng(address.latitude, address.longitude)
-
             }
         }
     }
+// The logic for address autocomplete and geocoding is adapted from the Google Maps SDK for Android
+// Geocoder class documentation: https://developer.android.com/reference/android/location/Geocoder
+
 }
 
