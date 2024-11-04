@@ -45,4 +45,17 @@
     <string name="appointmentsFilter">(Lys gefiltreer volgens gebruiker se instellings afstandsvoorkeur.)</string>
     <string name="appointmentsMaps">Sien tandartse op kaart (Nie gefiltreer nie).</string>
 
+
+  <string name="appointments2" >Afspraak bespreek met:</string>
+  <string name="book">Boek</string>
+
+  <string name="listApp">Lys van afsprake:</string>
+
+  <string name="reschedule">Herskeduleer</string>
+
+  <string name="timeoff">Skedule tyd af</string>
+  <string name="startdate">Begindatum:</string>
+  <string name="enddate">Einddatum:</string>
+  <string name="reason">Rede:</string>
+  <string name="submit">Indien</string>
 </resources>
