@@ -45,7 +45,8 @@
     <string name="appointmentsFilter">(List filtered according to user settings distance preference)</string>
     <string name="appointmentsMaps">View dentists on map (Unfiltered)</string>
 
-    <string name="appointment2" translatable="false">Appointment booked with:</string>
+    <string name="appointment2" translatable="true">Appointment booked with:</string>
+
     <string name="book">Book</string>
 
     <string name="listApp">List of Appointments:</string>
