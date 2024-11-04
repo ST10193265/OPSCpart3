@@ -1,52 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">OPSC7312 PoE Part 2 - Code</string>
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">Android Studio</string>
-    <string name="nav_header_subtitle">android.studio@android.com</string>
-    <string name="nav_header_desc">Navigation header</string>
+  <string name="app_name">OPSC7312 PoE Part 2 - Code</string>
+  <string name="navigation_drawer_open">Open navigation drawer</string>
+  <string name="navigation_drawer_close">Close navigation drawer</string>
+  <string name="nav_header_title">Android Studio</string>
+  <string name="nav_header_subtitle">android.studio@android.com</string>
+  <string name="nav_header_desc">Navigation header</string>
 
-    <string name="menu_home">Home</string>
+  <string name="menu_home">Home</string>
   <string name="change_address">Verander Adres:</string>
-    <string name="change_language">Verander Taal:</string>
-    <string name="change_distance_units">Verander Afstandseenhede:</string>
-    <string name="change_radius">Verander Afstandradius (eenhede):</string>
-    <string name="change_email">Verander E-pos:</string>
-    <string name="change_phone">Verander Telefoonnommer:</string>
-    <string name="save">Stoor</string>
-    <string name="cancel">Kanselleer</string>
-    <string name="search_dentist">Soek die naam wan n tandarts:</string>
+  <string name="change_language">Verander Taal:</string>
+  <string name="change_distance_units">Verander Afstandseenhede:</string>
+  <string name="change_radius">Verander Afstandradius (eenhede):</string>
+  <string name="change_email">Verander E-pos:</string>
+  <string name="change_phone">Verander Telefoonnommer:</string>
+  <string name="save">Stoor</string>
+  <string name="cancel">Kanselleer</string>
+  <string name="search_dentist">Soek die naam wan n tandarts:</string>
 
 
-    // strings for the healthzone
-    <string name="wvFloss"> Hoe om te vlos.</string>
-    <string name="wvDentalTrouble"> Vroeë tekens van tandheelkundige probleme.</string>
-    <string name="wvXrays"> Is tandheelkundige X-strale sleg?</string>
-    <string name="wvFillings"> Hoe werk vulsels?</string>
+  // strings for the healthzone
+  <string name="wvFloss"> Hoe om te vlos.</string>
+  <string name="wvDentalTrouble"> Vroeë tekens van tandheelkundige probleme.</string>
+  <string name="wvXrays"> Is tandheelkundige X-strale sleg?</string>
+  <string name="wvFillings"> Hoe werk vulsels?</string>
 
-    <string name="book_appointments">Maak Afsprake</string>
-    <string name="view_appointments">Sien Afsprake</string>
-    <string name="notifications">Kennisgewings</string>
-    <string name="setting_menu">Instellings</string>
-    <string name="maps">Kaarte</string>
-    <string name="health_zone">Gesondheid Sone</string>
-    <string name="manage_appointments">Bestuur Afsprake</string>
-    <string name="feature_to_be_implemented">KENMERK WAT NOG GEIMPLEMENTEER MOET WORD</string>
-    <string name="username">Username:</string>
-    <string name="new_password">New Password:</string>
-    <string name="email">Email:</string>
-
-
-    <string name="appointments">Bespreek afspraak:</string>
-    <string name="date">Kies asseblief n datum:</string>
-    <string name="time">Beskikbare Tyd:</string>
-    <string name="description">Beskrywing:</string>
-    <string name="appointmentsFilter">(Lys gefiltreer volgens gebruiker se instellings afstandsvoorkeur.)</string>
-    <string name="appointmentsMaps">Sien tandartse op kaart (Nie gefiltreer nie).</string>
+  <string name="book_appointments">Maak Afsprake</string>
+  <string name="view_appointments">Sien Afsprake</string>
+  <string name="notifications">Kennisgewings</string>
+  <string name="setting_menu">Instellings</string>
+  <string name="maps">Kaarte</string>
+  <string name="health_zone">Gesondheid Sone</string>
+  <string name="manage_appointments">Bestuur Afsprake</string>
+  <string name="feature_to_be_implemented">KENMERK WAT NOG GEIMPLEMENTEER MOET WORD</string>
+  <string name="username">Username:</string>
+  <string name="new_password">New Password:</string>
+  <string name="email">Email:</string>
 
 
-  <string name="appointments2" >Afspraak bespreek met:</string>
+  <string name="appointments">Bespreek afspraak:</string>
+  <string name="date">Kies asseblief n datum:</string>
+  <string name="time">Beskikbare Tyd:</string>
+  <string name="description">Beskrywing:</string>
+  <string name="appointmentsFilter">(Lys gefiltreer volgens gebruiker se instellings afstandsvoorkeur.)</string>
+  <string name="appointmentsMaps">Sien tandartse op kaart (Nie gefiltreer nie).</string>
+
   <string name="book">Boek</string>
 
   <string name="listApp">Lys van afsprake:</string>
@@ -58,4 +56,6 @@
   <string name="enddate">Einddatum:</string>
   <string name="reason">Rede:</string>
   <string name="submit">Indien</string>
+  <string name="appointment2">Afspraak bespreek met::</string>
+  <string name="booktimeoff">Bespreek Tyd Af</string>
 </resources>

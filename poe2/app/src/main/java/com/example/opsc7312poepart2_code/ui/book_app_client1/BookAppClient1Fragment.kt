@@ -24,6 +24,7 @@ import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.room.Room
 import com.example.opsc7312poepart2_code.ui.AppDatabase
+import com.example.opsc7312poepart2_code.ui.MIGRATION_1_2
 import com.example.opsc7312poepart2_code.ui.User1
 import com.example.opsc7312poepart2_code.ui.UserDao
 import com.example.opsc7312poepart2_code.ui.login_client.LoginClientFragment.Companion.loggedInClientUserId
@@ -69,11 +70,12 @@ class BookAppClient1Fragment : Fragment() {
         database = FirebaseDatabase.getInstance().getReference("clients")
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
-
         appDatabase = Room.databaseBuilder(
             requireContext(),
             AppDatabase::class.java, "app_database"
-        ).build()
+        )
+            .addMigrations(MIGRATION_1_2) // Add your migration here
+            .build()
 
         if (isOnline()) {
             // Fetch user settings first

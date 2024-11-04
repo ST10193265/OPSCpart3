@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.book_time_off.BookTimeOffFragment">
+    tools:context="com.example.ui.book_time_off.BookTimeOffFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -147,7 +147,7 @@
             android:layout_width="126dp"
             android:layout_height="45dp"
             android:backgroundTint="@color/lightblue"
-            android:text="@string/sumbit"
+            android:text="Sumbit"
             android:textColor="@color/black"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"

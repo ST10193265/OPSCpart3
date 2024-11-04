@@ -19,7 +19,6 @@
     <string name="cancel">Cancel</string>
     <string name="search_dentist">Search the name of a dentist:</string>
 
-    // strings for the healthzone
     <string name="wvFloss"> How to Floss.</string>
     <string name="wvDentalTrouble"> Early signs of Dental Trouble.</string>
     <string name="wvXrays"> Are Dental X-rays bad?</string>
@@ -46,7 +45,7 @@
     <string name="appointmentsFilter">(List filtered according to user settings distance preference)</string>
     <string name="appointmentsMaps">View dentists on map (Unfiltered)</string>
 
-    <string name="appointments2">Appointment booked with:</string>
+    <string name="appointment2">Appointment booked with:</string>
     <string name="book">Book</string>
 
     <string name="listApp">List of Appointments:</string>
@@ -58,4 +57,6 @@
     <string name="enddate">End Date:</string>
     <string name="reason">Reason:</string>
     <string name="submit">Submit</string>
+
+    <string name="booktimeoff">Book Time Off</string>
 </resources>

@@ -18,6 +18,7 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.example.opsc7312poepart2_code.ui.AppDatabase
 import com.example.opsc7312poepart2_code.ui.BiometricAuthenticator
+import com.example.opsc7312poepart2_code.ui.MIGRATION_1_2
 import com.example.opsc7312poepart2_code.ui.User1
 import com.example.opsc7312poepart2_code.ui.login_client.LoginClientFragment.Companion.loggedInClientUserId
 import com.example.opsc7312poepart2_code.ui.login_client.LoginClientFragment.Companion.loggedInClientUsername
@@ -64,10 +65,13 @@ class LoginDentistFragment : Fragment() {
     ): View {
         _binding = FragmentLoginDentistBinding.inflate(inflater, container, false)
         val root: View = binding.root
+
         appDatabase = Room.databaseBuilder(
             requireContext(),
             AppDatabase::class.java, "app_database"
-        ).build()
+        )
+            .addMigrations(MIGRATION_1_2) // Add your migration here
+            .build()
         // Initialize Firebase Database and Auth
         database = FirebaseDatabase.getInstance()
         dbReference = database.getReference("dentists")
