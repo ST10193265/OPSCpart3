@@ -71,7 +71,7 @@ class NotificationsClientFragment : Fragment() {
         binding.notificationsListView.adapter = notificationsAdapter
 
         // Initialize the NotificationReceiver
-        notificationReceiver = NotificationReceiver(notificationsList, notificationsAdapter)
+        notificationReceiver = NotificationReceiver()
 
         // Retrieve FCM token in a background thread
         fetchFcmToken()
