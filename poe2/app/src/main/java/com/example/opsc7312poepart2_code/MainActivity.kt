@@ -18,8 +18,6 @@ import com.google.firebase.firestore.FirebaseFirestoreSettings
 class MainActivity : AppCompatActivity() {
 
 
-
-
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
 

@@ -1,6 +1,7 @@
 package com.example.opsc7312poepart2_code.ui.book_app_client2
 
 import android.content.Context
+import android.content.Intent
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.Log
@@ -247,6 +248,12 @@ class BookAppClient2Fragment : Fragment() {
                 if (response.isSuccessful) {
                     Toast.makeText(requireContext(), "Appointment booked successfully!", Toast.LENGTH_SHORT).show()
                     clearFields()
+                    // Prepare the broadcast intent
+                    val intent = Intent("com.example.opsc7312poepart2_code.ACTION_NOTIFICATION_RECEIVED")
+                    intent.putExtra("message", "Appointment booked successfully")
+
+                    // Send the broadcast
+                    requireContext().sendBroadcast(intent)
                 } else {
                     Log.e("BookAppClient2Fragment", "Failed to book appointment: ${response.errorBody()?.string()}")
                     Toast.makeText(requireContext(), "Failed to book appointment, saved offline.", Toast.LENGTH_SHORT).show()
@@ -299,6 +306,7 @@ class BookAppClient2Fragment : Fragment() {
         userId = null
         Log.d("BookAppClient2Fragment", "Fields cleared.")
     }
+
     private fun syncAppointmentsWithFirebase() {
         CoroutineScope(Dispatchers.IO).launch {
             val appointments = appDatabase.appointmentDao().getAllAppointments()

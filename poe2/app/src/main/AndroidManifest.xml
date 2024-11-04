@@ -33,6 +33,14 @@
             </intent-filter>
         </service>
 
+        <receiver android:name=".NotificationsClientFragment$notificationReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.example.opsc7312poepart2_code.ACTION_NOTIFICATION_RECEIVED" />
+
+            </intent-filter>
+        </receiver>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
