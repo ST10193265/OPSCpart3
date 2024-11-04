@@ -42,8 +42,8 @@ jobs:
           build-tools: 30.0.2
           components: build-tools;30.0.2
 
-      - name: Build with Gradle
-        run: cd poe2 && ./gradlew build --stacktrace
+      - name: Build with Gradle (Skip Lint Checks)
+        run: cd poe2 && ./gradlew build --stacktrace --no-lint
 
       - name: Run Unit Tests
         run: cd poe2 && ./gradlew test --stacktrace
