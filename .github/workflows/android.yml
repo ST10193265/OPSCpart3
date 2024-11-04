@@ -33,7 +33,7 @@ jobs:
           ${{ runner.os }}-gradle-
 
     - name: Set permissions for Gradlew
-      run: chmod +x ./gradlew  
+      run: chmod +x poe2/gradlew  
 
     - name: Set up Android SDK
       uses: android-actions/setup-android@v2
@@ -43,7 +43,7 @@ jobs:
         components: build-tools;30.0.2
 
     - name: Build with Gradle
-      run: ./gradlew build --stacktrace
+      run: poe2/gradlew build --stacktrace
 
     - name: Run Unit Tests
-      run: ./gradlew test --stacktrace
+      run: poe2/gradlew test --stacktrace
