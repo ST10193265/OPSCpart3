@@ -102,6 +102,7 @@ class ClientSettingsFragment : Fragment() {
         // Contributors: Android Developers
         // Contributor Profile: https://developer.android.com/profile/u/0/AndroidDevelopers
         val distanceRadius = arrayOf("No Limit", "1", "5", "10", "20", "30")
+
         val distanceRadiusAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, distanceRadius)
         spinnerDistanceRadius.adapter = distanceRadiusAdapter
         spinnerDistanceRadius.setSelection(0)
@@ -111,7 +112,7 @@ class ClientSettingsFragment : Fragment() {
 
         // Set up click listeners
         ibtnHome.setOnClickListener {
-            navigateToHome() // Navigate to the home screen when Home button is clicked
+            findNavController().navigate(R.id.action_nav_settings_client_to_nav_menu_client)
         }
 
         btnSave.setOnClickListener {
@@ -120,7 +121,7 @@ class ClientSettingsFragment : Fragment() {
 
         btnCancel.setOnClickListener {
             clearFields() // Clear input fields when Cancel button is clicked
-            navigateToHome() // Navigate back to home after clearing fields
+            findNavController().navigate(R.id.action_nav_settings_client_to_nav_menu_client)// Navigate back to home after clearing fields
         }
 
         return view
@@ -167,7 +168,7 @@ class ClientSettingsFragment : Fragment() {
         } else {
             // Show a message if no changes were made
             Toast.makeText(requireContext(), "No changes made!", Toast.LENGTH_SHORT).show()
-            navigateToHome()
+            findNavController().navigate(R.id.action_nav_settings_client_to_nav_menu_client)
         }
     }
 
@@ -184,7 +185,7 @@ class ClientSettingsFragment : Fragment() {
                 // Show success message and update app language if language was changed
                 Toast.makeText(context, "Settings updated successfully!", Toast.LENGTH_SHORT).show()
                 updateAppLanguage(selectedLanguage)
-                navigateToHome() // Navigate back to home after successful update
+                findNavController().navigate(R.id.action_nav_settings_client_to_nav_menu_client)
             }
             .addOnFailureListener { exception ->
                 // Show an error message if the update failed
@@ -233,7 +234,10 @@ class ClientSettingsFragment : Fragment() {
                     // Set spinner and EditText fields with the retrieved values
                     spinnerLanguage.setSelection(if (language == "af") 1 else 0)
                     spinnerDistanceUnits.setSelection(if (distanceUnit == "km") 0 else 1)
-                    spinnerDistanceRadius.setSelection(if (distanceRadius == "No Limit") 0 else distanceRadius.replace(" km", "").toInt() / 5)
+                    val distanceOptions = arrayOf("No Limit", "1", "5", "10", "20", "30")
+                    val distanceRadiusIndex = distanceOptions.indexOf(distanceRadius)
+                    spinnerDistanceRadius.setSelection(if (distanceRadiusIndex != -1) distanceRadiusIndex else 0)
+
                     etEmail.setText(email)
                     etPhone.setText(phoneNumber)
                 }
@@ -254,8 +258,5 @@ class ClientSettingsFragment : Fragment() {
         etPhone.text.clear()
     }
 
-    // Navigate back to the home screen
-    private fun navigateToHome() {
-        findNavController().navigate(R.id.action_nav_settings_client_to_nav_menu_client)
-    }
+
 }
