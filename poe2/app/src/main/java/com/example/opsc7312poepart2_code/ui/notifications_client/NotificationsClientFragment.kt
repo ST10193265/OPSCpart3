@@ -78,7 +78,7 @@ class NotificationsClientFragment : Fragment() {
 
         // Set up click listener for Home button
         ibtnHome.setOnClickListener {
-            Log.e("NotificationsClient", "Home button clicked")
+            Log.d("NotificationsClient", "Home button clicked")
             findNavController().navigate(R.id.action_nav_notifications_client_to_nav_menu_client)
         }
 
@@ -130,12 +130,6 @@ class NotificationsClientFragment : Fragment() {
         val userId = loggedInClientUserId
 
         Log.d("NotificationsClient", "Attempting to fetch notifications...")
-        Log.d("NotificationsClient", "AuthToken: $authToken, UserId: $userId, FCM Token: $fcmToken")
-
-        // Check for null values and log specific cases
-        if (userId == null) Log.e("NotificationsClient", "UserId is null")
-        if (authToken == null) Log.e("NotificationsClient", "AuthToken is null")
-        if (fcmToken == null) Log.e("NotificationsClient", "FCM Token is null")
 
         // Proceed only if all required tokens are available
         if (userId != null && authToken != null && fcmToken != null) {
@@ -145,13 +139,10 @@ class NotificationsClientFragment : Fragment() {
 
                     if (response.isSuccessful && response.body() != null) {
                         val notifications = response.body()!!.notifications
-                        Log.d("NotificationsClient", "Notifications fetched: ${notifications.size}")
-
                         notificationsList.clear()
                         notificationsList.addAll(notifications.map { it.message })
                         notificationsAdapter.notifyDataSetChanged()
                     } else if (response.code() == 404) {
-                        // Show a toast message for no notifications
                         Toast.makeText(requireContext(), "No notifications", Toast.LENGTH_SHORT).show()
                         Log.e("NotificationsClient", "No notifications found for this patient")
                     } else {
@@ -171,26 +162,20 @@ class NotificationsClientFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        unregisterNotificationReceiver()
+    }
+
+    private fun unregisterNotificationReceiver() {
         try {
             requireContext().unregisterReceiver(notificationReceiver)
         } catch (e: IllegalArgumentException) {
             Log.e("NotificationsClient", "Receiver not registered: ${e.message}")
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        // Optionally register the receiver again if needed
-        // registerNotificationReceiver() // Uncomment if you want to re-register on start
     }
 
     override fun onStop() {
         super.onStop()
-        try {
-            requireContext().unregisterReceiver(notificationReceiver)
-        } catch (e: IllegalArgumentException) {
-            Log.e("NotificationsClient", "Receiver not registered: ${e.message}")
-        }
+        unregisterNotificationReceiver()
     }
 }
 
