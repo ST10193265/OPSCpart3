@@ -57,6 +57,8 @@
   <string name="enddate">Einddatum:</string>
   <string name="reason">Rede:</string>
   <string name="submit">Indien</string>
+
   <string name ="appointment2">Afspraak bespreek met:</string>
+
   <string name="booktimeoff">Bespreek Tyd Af</string>
 </resources>

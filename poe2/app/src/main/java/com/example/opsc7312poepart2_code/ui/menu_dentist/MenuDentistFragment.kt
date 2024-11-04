@@ -26,11 +26,11 @@ class MenuDentistFragment : Fragment() {
 
         // Initialize the ImageButtons
         val ibtnViewApp:  ImageButton = view.findViewById(R.id.ibtnViewApp)
-        val ibtnNotifications: ImageButton = view.findViewById(R.id.ibtnNotifications)
+
         val ibtnSettings: ImageButton = view.findViewById(R.id.ibtnSettings)
         val ibtnLogout: Button = view.findViewById(R.id.btnLogOut)
         val ibtnMagageApp: ImageButton = view.findViewById(R.id.ibtnMagageApp)
-        val ibtnTimeOff: ImageButton = view.findViewById(R.id.ibtnBookTimeOff)
+        val ibtnTimeOff: ImageButton = view.findViewById(R.id.ibtnBooktimeOff)
 
         ibtnMagageApp.setOnClickListener {
             // Navigate to the BookAppointmentFragment using the NavController
@@ -62,17 +62,7 @@ class MenuDentistFragment : Fragment() {
 
         }
 
-        // Set OnClickListener for the Notifications button
-        ibtnNotifications.setOnClickListener {
-            // Navigate to the BookAppointmentFragment using the NavController
 
-            if (isOnline()) {
-                findNavController().navigate(R.id.action_nav_menu_dentist_to_nav_notifications_dentist)
-            } else {
-                showToast("No Internet Connection!")
-            }
-
-        }
 
         // Set OnClickListener for the Notifications button
         ibtnSettings.setOnClickListener {

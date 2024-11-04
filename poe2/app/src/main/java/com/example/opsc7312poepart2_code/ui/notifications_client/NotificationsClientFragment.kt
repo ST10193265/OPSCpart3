@@ -193,6 +193,3 @@ class NotificationsClientFragment : Fragment() {
         }
     }
 }
-
-
-

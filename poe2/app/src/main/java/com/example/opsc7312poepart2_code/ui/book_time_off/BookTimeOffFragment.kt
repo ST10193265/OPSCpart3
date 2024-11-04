@@ -116,4 +116,6 @@ class BookTimeOffFragment : Fragment() {
                 Toast.makeText(requireContext(), "Failed to submit request", Toast.LENGTH_SHORT).show()
             }
     }
+    // The code above submits a time-off request to Firebase Realtime Database.
+    // https://firebase.google.com/docs/database/android/start
 }

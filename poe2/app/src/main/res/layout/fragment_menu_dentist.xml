@@ -67,20 +67,6 @@
             app:layout_constraintVertical_bias="0.654" />
 
         <ImageButton
-            android:id="@+id/ibtnBookTimeOff"
-            android:layout_width="144dp"
-            android:layout_height="141dp"
-            android:backgroundTint="@color/lightblue"
-            android:scaleType="fitCenter"
-            android:src="@drawable/timeoff"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.868"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.654" />
-
-        <ImageButton
             android:id="@+id/ibtnMagageApp"
             android:layout_width="340dp"
             android:layout_height="138dp"
@@ -95,6 +81,20 @@
             app:layout_constraintVertical_bias="0.359" />
 
         <ImageButton
+            android:id="@+id/ibtnBooktimeOff"
+            android:layout_width="340dp"
+            android:layout_height="138dp"
+            android:backgroundTint="@color/lightblue"
+            android:scaleType="fitCenter"
+            android:src="@drawable/timeoff"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.577"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.94" />
+
+        <ImageButton
             android:id="@+id/ibtnSettings"
             android:layout_width="144dp"
             android:layout_height="141dp"
@@ -106,21 +106,7 @@
             app:layout_constraintHorizontal_bias="0.887"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.947" />
-
-        <ImageButton
-            android:id="@+id/ibtnNotifications"
-            android:layout_width="147dp"
-            android:layout_height="137dp"
-            android:backgroundTint="@color/lightblue"
-            android:scaleType="fitCenter"
-            android:src="@drawable/notifications"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.2"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.941" />
+            app:layout_constraintVertical_bias="0.654" />
 
         <TextView
             android:id="@+id/textView7"
@@ -139,33 +125,20 @@
             android:id="@+id/txtSettings"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Settings"
             android:gravity="center"
+            android:text="@string/setting_menu"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.802"
+            app:layout_constraintHorizontal_bias="0.766"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.977" />
-
-        <TextView
-            android:id="@+id/txtNotifications"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Notifications"
-            android:gravity="center"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.265"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.977" />
+            app:layout_constraintVertical_bias="0.741" />
 
         <TextView
             android:id="@+id/txtViewApp"
             android:layout_width="132dp"
             android:layout_height="24dp"
-            android:text="View Appointments"
+            android:text="@string/view_appointments"
             android:gravity="center"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -179,13 +152,13 @@
             android:layout_width="132dp"
             android:layout_height="24dp"
             android:gravity="center"
-            android:text="Book Time Off"
+            android:text="@string/booktimeoff"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.849"
+            app:layout_constraintHorizontal_bias="0.548"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.739" />
+            app:layout_constraintVertical_bias="0.977" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </FrameLayout>

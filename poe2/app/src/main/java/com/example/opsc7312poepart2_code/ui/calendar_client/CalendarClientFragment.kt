@@ -3,7 +3,6 @@ package com.example.poe2.ui.calendar_client
 import android.graphics.Color
 import android.os.Bundle
 import android.text.style.ForegroundColorSpan
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -28,6 +27,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import java.util.*
 import java.text.ParseException
+
 class CalendarClientFragment : Fragment() {
 
     private lateinit var calendarView: CalendarView // CalendarView for displaying dates
@@ -73,10 +73,6 @@ class CalendarClientFragment : Fragment() {
     }
 
     // Function to load appointments for the logged-in user from the database
-    // Adapted from: Firebase Realtime Database Documentation
-    // Source URL: https://firebase.google.com/docs/database/android/start
-    // Contributors: Firebase Developers
-    // Contributor Profile: https://firebase.google.com/profile/u/0/FirebaseDevelopers
     private fun loadUserAppointments(clientId: String) {
         // Access all appointments from the database
         database.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -113,7 +109,7 @@ class CalendarClientFragment : Fragment() {
 
                         // Get the selected date from the calendar
                         val selectedDate = dateFormat.format(eventDay.calendar.time)
-                        Log.d("CalendarClientFragment", "Selected date: $selectedDate")
+                        // Log.d("CalendarClientFragment", "Selected date: $selectedDate") // Commented out
 
                         // Check if the selected date exists in userAppointments
                         val appointmentList = userAppointments[selectedDate]
@@ -131,17 +127,15 @@ class CalendarClientFragment : Fragment() {
 
             // Handle errors when loading appointments from the database
             override fun onCancelled(error: DatabaseError) {
-                Log.e("CalendarClientFragment", "Failed to load appointments: ${error.message}")
+                // Log.e("CalendarClientFragment", "Failed to load appointments: ${error.message}") // Commented out
                 Toast.makeText(requireContext(), "Failed to load appointments.", Toast.LENGTH_SHORT).show()
             }
         })
     }
+    // The logic to load appointments is adapted from Firebase documentation
+    // https://firebase.google.com/docs/database/android/read-and-write
 
     // Function to highlight days on the calendar that have appointments
-    // Function to highlight days on the calendar that have appointments
-    // Adapted from community contributions and best practices in Android development
-    // Contributors: Stack Overflow community, Android Developer Documentation, and various open-source projects on GitHub
-    // URL: https://stackoverflow.com, https://developer.android.com, https://github.com
     private fun highlightAppointmentDays() {
         // Parse the dates with appointments into Calendar instances
         val datesWithAppointments = userAppointments.keys.mapNotNull { dateString ->
@@ -150,7 +144,7 @@ class CalendarClientFragment : Fragment() {
                 val date = dateFormat.parse(dateString)
                 Calendar.getInstance().apply { time = date } // Create Calendar instance
             } catch (e: ParseException) {
-                Log.e("CalendarClientFragment", "Invalid date format: $dateString")
+                // Log.e("CalendarClientFragment", "Invalid date format: $dateString") // Commented out
                 null // Return null for invalid date formats
             }
         }
@@ -163,5 +157,8 @@ class CalendarClientFragment : Fragment() {
         // Set the events on the CalendarView
         calendarView.setEvents(events)
     }
-}
+    // The logic for handling dates and events is adapted from various online resources
+// Java SimpleDateFormat documentation: https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html
 
+
+}

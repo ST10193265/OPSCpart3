@@ -1,7 +1,6 @@
 package com.example.opsc7312poepart2_code.ui.book_app_client1
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,6 +18,7 @@ import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
 import android.net.ConnectivityManager
+import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
@@ -127,15 +127,15 @@ class BookAppClient1Fragment : Fragment() {
     private fun fetchUserSettings(onComplete: () -> Unit) {
         // Get the client ID for Firebase
         val clientId = loggedInClientUserId
-        Log.d(TAG, "Fetching settings for Client ID: $clientId") // Log the client ID
+        // Log.d(TAG, "Fetching settings for Client ID: $clientId") // Log the client ID
 
-        Log.d(TAG, "Database reference path: clients/$clientId") // Log the reference path
+        // Log.d(TAG, "Database reference path: clients/$clientId") // Log the reference path
 
         if (database != null) {
             database.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     // Log the entire snapshot for debugging purposes
-                    Log.d(TAG, "Snapshot data: ${snapshot.value}")
+                    // Log.d(TAG, "Snapshot data: ${snapshot.value}")
 
                     // Check if snapshot exists and if the specific client node exists
                     if (snapshot.exists() && clientId?.let { snapshot.hasChild(it) } == true) {
@@ -153,7 +153,7 @@ class BookAppClient1Fragment : Fragment() {
                             "20" -> 20.0
                             "30" -> 30.0
                             else -> {
-                                Log.d(TAG, "Unrecognized distance radius: $rawDistanceRadius") // Log unrecognized values
+                                // Log.d(TAG, "Unrecognized distance radius: $rawDistanceRadius") // Log unrecognized values
                                 null
                             }
                         }
@@ -164,9 +164,9 @@ class BookAppClient1Fragment : Fragment() {
                         }
 
                         // Log the fetched user settings
-                        Log.d(TAG, "User Distance Radius: $userDistanceRadius $userDistanceUnit")
+                        // Log.d(TAG, "User Distance Radius: $userDistanceRadius $userDistanceUnit")
                     } else {
-                        Log.d(TAG, "No data found for client ID: $clientId") // Log if no data exists for the client ID
+                        // Log.d(TAG, "No data found for client ID: $clientId") // Log if no data exists for the client ID
                     }
 
                     // Call onComplete to signal that fetching is done
@@ -174,15 +174,14 @@ class BookAppClient1Fragment : Fragment() {
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Log.e(TAG, "Failed to load user settings: ${error.message}")
+                    // Log.e(TAG, "Failed to load user settings: ${error.message}")
                 }
             })
         } else {
-            Log.e(TAG, "User reference is null for client ID: $clientId")
+            // Log.e(TAG, "User reference is null for client ID: $clientId")
             onComplete() // Still call onComplete even if the reference is null
         }
     }
-
 
     private fun fetchDentistsWithLocationFiltering() {
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -193,7 +192,7 @@ class BookAppClient1Fragment : Fragment() {
         fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
             location?.let { userLocation ->
                 val userLatLng = LatLng(userLocation.latitude, userLocation.longitude)
-                Log.d(TAG, "User Location: ${userLatLng.latitude}, ${userLatLng.longitude}")
+                // Log.d(TAG, "User Location: ${userLatLng.latitude}, ${userLatLng.longitude}")
 
                 databaseReference.addValueEventListener(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
@@ -209,28 +208,28 @@ class BookAppClient1Fragment : Fragment() {
                                     val distance = calculateDistance(userLatLng, dentistLocation)
 
                                     // Log distance for debugging
-                                    Log.d(TAG, "Distance to $name: $distance ${userDistanceUnit}")
+                                    // Log.d(TAG, "Distance to $name: $distance ${userDistanceUnit}")
 
                                     if (userDistanceRadius == null || distance <= userDistanceRadius!!) {
                                         dentistList.add(name) // Add the dentist to the list
                                         dentistsInRange++
                                     }
-                                } ?: Log.e(TAG, "Could not get coordinates for address: $address")
-                            } else {
-                                Log.e(TAG, "Dentist name or address is null")
-                            }
+                                } // ?: Log.e(TAG, "Could not get coordinates for address: $address")
+                            } // else {
+                            // Log.e(TAG, "Dentist name or address is null")
+                            //}
                         }
 
                         // Log the number of dentists added
-                        Log.d(TAG, "Total Dentists in Range: $dentistsInRange")
+                        // Log.d(TAG, "Total Dentists in Range: $dentistsInRange")
                         listViewAdapter.notifyDataSetChanged() // Notify adapter of data change
                     }
 
                     override fun onCancelled(error: DatabaseError) {
-                        Log.e(TAG, "Database error: ${error.message}")
+                        // Log.e(TAG, "Database error: ${error.message}")
                     }
                 })
-            } ?: Log.e(TAG, "User location is null")
+            } // ?: Log.e(TAG, "User location is null")
         }
     }
 
@@ -251,11 +250,11 @@ class BookAppClient1Fragment : Fragment() {
             if (results?.isNotEmpty() == true) {
                 LatLng(results[0].latitude, results[0].longitude)
             } else {
-                Log.e(TAG, "No results found for address: $address")
+                // Log.e(TAG, "No results found for address: $address")
                 null
             }
         } catch (e: IOException) {
-            Log.e(TAG, "Geocoding error: ${e.message}")
+            // Log.e(TAG, "Geocoding error: ${e.message}")
             null
         }
     }
@@ -296,7 +295,7 @@ class BookAppClient1Fragment : Fragment() {
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Log.e(TAG, "Firebase data fetch failed: ${error.message}")
+                //Log.e(TAG, "Firebase data fetch failed: ${error.message}")
             }
         })
     }
@@ -317,8 +316,4 @@ class BookAppClient1Fragment : Fragment() {
 
 
 }
-
-
-
-
 

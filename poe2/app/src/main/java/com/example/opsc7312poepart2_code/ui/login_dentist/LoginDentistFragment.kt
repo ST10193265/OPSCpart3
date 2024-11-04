@@ -77,7 +77,7 @@ class LoginDentistFragment : Fragment() {
         dbReference = database.getReference("dentists")
         auth = FirebaseAuth.getInstance()
 
-        Log.d("LoginDentistFragment", "Firebase initialized, Auth and Database setup complete")
+      //  Log.d("LoginDentistFragment", "Firebase initialized, Auth and Database setup complete")
 
         // Handle login button click
         binding.btnLogin.setOnClickListener {
@@ -139,9 +139,61 @@ class LoginDentistFragment : Fragment() {
 
         }
     }
+    // The code above initiates Google Sign-In using GoogleSignInClient.
+    // https://developers.google.com/android/reference/com/google/android/gms/auth/api/signin/GoogleSignInClient
+
     private fun initiateBiometricLogin() {
         if (isOnline()) {
             val username = binding.etxtUsername.text.toString().trim()
+
+
+        dbReference.orderByChild("username").equalTo(username)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (!snapshot.exists()) {
+                     //   Log.e("LoginDentistFragment", "User $username not found in the database")
+                        showToast("Error: User not found.")
+                        return
+                    }
+
+                  //  Log.d("LoginDentistFragment", "User $username found in the database")
+                    val userSnapshot = snapshot.children.first()
+                    var userId = userSnapshot.child("id").getValue(String::class.java).orEmpty()
+                    val role = userSnapshot.child("role").getValue(String::class.java).orEmpty().ifEmpty { "dentist" }
+
+                    loggedInDentistUsername = username
+                    loggedInDentistUserId = snapshot.children.first().key // Get user ID
+                    //getUserIdFromFirebase(username) // Fetch and store user ID
+                    userId = loggedInDentistUserId.toString()
+
+                  //  Log.d("LoginDentistFragment", "loggedInDentistUserId is: $loggedInDentistUserId")
+                  //  Log.d("LoginDentistFragment", "userId is: $userId")
+
+                    val biometricAuthenticator = BiometricAuthenticator(requireActivity(), {
+                       // Log.d("LoginDentistFragment", "Biometric authentication successful for user: $username")
+
+                        isBiometricLogin = true
+                      //  Log.d("LoginDentistFragment", "isBiometricLogin: $isBiometricLogin")
+
+                        val jwtToken = generateJwtToken(userId, role)
+                      //  Log.d("LoginDentistFragment", "JWT Token generated: $jwtToken")
+
+                      //  Log.d("LoginDentistFragment", "Navigating to client menu after successful authentication")
+                        findNavController().navigate(R.id.action_nav_login_dentist_to_nav_menu_dentist)
+                    }, { errorMessage ->
+                        showToast(errorMessage)
+                      //  Log.e("LoginDentistFragment", "Biometric authentication error: $errorMessage")
+                    })
+
+                   // Log.d("LoginDentistFragment", "Starting biometric authentication process")
+                    biometricAuthenticator.authenticate()
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                   // Log.e("LoginDentistFragment", "Database error: ${error.message}")
+                    showToast("Error: Database connection failed.")
+                }
+            })
 
             if (username.isEmpty()) {
                 showToast("Error: Username is required.")
@@ -214,6 +266,7 @@ class LoginDentistFragment : Fragment() {
         }else {
             showToast("No Internet Connection!")
 
+
         }
     }
 
@@ -265,7 +318,7 @@ class LoginDentistFragment : Fragment() {
                         // Generate JWT token with ID and role
                         val jwtToken = generateJwtToken(userId, role)
                         saveToken(jwtToken) // Save the generated token
-                        Log.d("LoginDentistFragment", "JWT Token generated: $jwtToken")
+                      //  Log.d("LoginDentistFragment", "JWT Token generated: $jwtToken")
 
                         Toast.makeText(requireContext(), "Login successful!", Toast.LENGTH_SHORT).show()
                         saveUserToLocalDatabase(userId, username, password, role)
@@ -289,14 +342,14 @@ class LoginDentistFragment : Fragment() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     loggedInDentistUserId = snapshot.children.first().key // Get user ID
-                    Log.d("LoginDentistFragment", "Logged in user ID: $loggedInDentistUserId")
+                  //  Log.d("LoginDentistFragment", "Logged in user ID: $loggedInDentistUserId")
                 } else {
-                    Log.d("LoginDentistFragment", "User ID not found for $username")
+                  //  Log.d("LoginDentistFragment", "User ID not found for $username")
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Log.e("LoginDentistFragment", "Database error when retrieving user ID: ${error.message}")
+               // Log.e("LoginDentistFragment", "Database error when retrieving user ID: ${error.message}")
             }
         })
     }
@@ -304,11 +357,11 @@ class LoginDentistFragment : Fragment() {
     private fun saveToken(token: String) {
         val sharedPref = requireActivity().getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
         sharedPref.edit().putString("jwt_token", token).apply()
-        Log.d("TokenDebug", "Token saved: $token") // Log the token when saved
+      //  Log.d("TokenDebug", "Token saved: $token") // Log the token when saved
     }
 
     private fun generateJwtToken(id: String, role: String): String {
-        Log.d("LoginClientFragment", "Generating JWT Token for ID: $id with role: $role")
+       // Log.d("LoginClientFragment", "Generating JWT Token for ID: $id with role: $role")
         val algorithm = Algorithm.HMAC256("supersecretkey")
 
         val token = JWT.create()
@@ -322,13 +375,16 @@ class LoginDentistFragment : Fragment() {
         return token
     }
 
+    // Function to hash the password using SHA-256
     private fun hashPassword(password: String, salt: ByteArray): String {
-        val messageDigest = MessageDigest.getInstance("SHA-256")
-        messageDigest.update(salt)
-        val hashedBytes = messageDigest.digest(password.toByteArray())
-        return Base64.encodeToString(hashedBytes, Base64.DEFAULT)
+        val digest = MessageDigest.getInstance("SHA-256")
+        digest.update(salt)
+        val hashedPassword = Base64.encodeToString(digest.digest(password.toByteArray()), Base64.DEFAULT)
+        // Log.d("ForgetPasswordDentistFragment", "Hashed password: $hashedPassword")
+        return hashedPassword
     }
-
+    // the code above was taken and adpated from Hyperskill
+    // https://hyperskill.org/learn/step/36628
 
 
     private fun togglePasswordVisibility() {
@@ -340,6 +396,8 @@ class LoginDentistFragment : Fragment() {
         }
         binding.etxtPassword.setSelection(binding.etxtPassword.text.length)
     }
+    // code above was taken and adapted from Andriod Developers.
+    // https://developer.android.com/reference/android/widget/EditText#attr_android:inputType
 
     // Offline login using local Room database
     private fun loginUserOffline(username: String, password: String) {
@@ -365,6 +423,8 @@ class LoginDentistFragment : Fragment() {
             }
         }
     }
+    // The code above uses the ConnectivityManager to check the network connectivity status.
+    // https://developer.android.com/training/basics/network-ops/connecting
 
 
     // Check network connectivity
@@ -373,6 +433,8 @@ class LoginDentistFragment : Fragment() {
         val networkInfo = connectivityManager.activeNetworkInfo
         return networkInfo != null && networkInfo.isConnected
     }
+    // The code above uses the ConnectivityManager to check the network connectivity status.
+    // https://developer.android.com/training/basics/network-ops/connecting
 
     private fun saveUserToLocalDatabase(userId: String, username: String, password: String, role: String) {
         val user = User1(userId = userId, username = username, password = password, role = role)
