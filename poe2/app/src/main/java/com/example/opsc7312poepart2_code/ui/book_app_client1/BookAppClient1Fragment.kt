@@ -18,6 +18,7 @@ import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
 import android.net.ConnectivityManager
+import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
@@ -292,7 +293,7 @@ class BookAppClient1Fragment : Fragment() {
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Log.e(TAG, "Firebase data fetch failed: ${error.message}")
+                //Log.e(TAG, "Firebase data fetch failed: ${error.message}")
             }
         })
     }
