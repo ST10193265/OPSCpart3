@@ -241,10 +241,10 @@ class MapsClientFragment : Fragment(), OnMapReadyCallback {
                 val url = buildDirectionsUrl(originLatLng, destination)
                 fetchDirections(url)
             } else {
-                Log.d("MapsClientFragment", "Unable to get current location")
+               // Log.d("MapsClientFragment", "Unable to get current location")
             }
         }.addOnFailureListener {
-            Log.d("MapsClientFragment", "Failed to retrieve location.")
+           // Log.d("MapsClientFragment", "Failed to retrieve location.")
             Toast.makeText(requireContext(), "Failed to retrieve location", Toast.LENGTH_SHORT).show()
         }
     }

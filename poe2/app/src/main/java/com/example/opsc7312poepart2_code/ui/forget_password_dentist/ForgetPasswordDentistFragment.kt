@@ -3,7 +3,7 @@ package com.example.opsc7312poepart2_code.ui.forget_password_dentist
 import android.os.Bundle
 import android.text.InputType
 import android.util.Base64
-import android.util.Log
+// import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -90,7 +90,7 @@ class ForgetPasswordDentistFragment : Fragment() {
 
     // Function to reset the password
     private fun resetPassword(username: String, email: String, newPassword: String) {
-        Log.d("ForgetPasswordDentistFragment", "Attempting to reset password for username: $username")
+        // Log.d("ForgetPasswordDentistFragment", "Attempting to reset password for username: $username")
         dbReference.orderByChild("username").equalTo(username).addListenerForSingleValueEvent(object :
             ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -100,7 +100,7 @@ class ForgetPasswordDentistFragment : Fragment() {
 
                     // Check if the provided email matches the stored email
                     if (storedEmail == email) {
-                        Log.d("ForgetPasswordDentistFragment", "Email matched, proceeding to reset password.")
+                        // Log.d("ForgetPasswordDentistFragment", "Email matched, proceeding to reset password.")
                         // Hash and salt the new password
                         val newSalt = generateSalt()
                         val hashedNewPassword = hashPassword(newPassword, newSalt)
@@ -114,17 +114,17 @@ class ForgetPasswordDentistFragment : Fragment() {
                         findNavController().navigate(R.id.action_nav_forget_password_dentist_to_nav_login_dentist)
                     } else {
                         Toast.makeText(requireContext(), "Email does not match the username.", Toast.LENGTH_SHORT).show()
-                        Log.d("ForgetPasswordDentistFragment", "Email does not match for username: $username")
+                        // Log.d("ForgetPasswordDentistFragment", "Email does not match for username: $username")
                     }
                 } else {
                     Toast.makeText(requireContext(), "User not found.", Toast.LENGTH_SHORT).show()
-                    Log.d("ForgetPasswordDentistFragment", "User not found for username: $username")
+                    // Log.d("ForgetPasswordDentistFragment", "User not found for username: $username")
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
                 Toast.makeText(requireContext(), "Database error: ${error.message}", Toast.LENGTH_SHORT).show()
-                Log.e("ForgetPasswordDentistFragment", "Database error: ${error.message}")
+                // Log.e("ForgetPasswordDentistFragment", "Database error: ${error.message}")
             }
         })
     }
@@ -133,7 +133,7 @@ class ForgetPasswordDentistFragment : Fragment() {
     private fun generateSalt(): ByteArray {
         val salt = ByteArray(16)
         SecureRandom().nextBytes(salt)
-        Log.d("ForgetPasswordDentistFragment", "Generated salt: ${Base64.encodeToString(salt, Base64.DEFAULT)}")
+        // Log.d("ForgetPasswordDentistFragment", "Generated salt: ${Base64.encodeToString(salt, Base64.DEFAULT)}")
         return salt
     }
     // the code above was taken and apapted from StackOverFlow
@@ -146,7 +146,7 @@ class ForgetPasswordDentistFragment : Fragment() {
         val digest = MessageDigest.getInstance("SHA-256")
         digest.update(salt)
         val hashedPassword = Base64.encodeToString(digest.digest(password.toByteArray()), Base64.DEFAULT)
-        Log.d("ForgetPasswordDentistFragment", "Hashed password: $hashedPassword")
+        // Log.d("ForgetPasswordDentistFragment", "Hashed password: $hashedPassword")
         return hashedPassword
     }
     // the code above was taken and adpated from Hyperskill
