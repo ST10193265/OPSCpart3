@@ -146,7 +146,7 @@ class ClientDentistMapFragment : Fragment(), OnMapReadyCallback {
                         marker.isVisible = true
                         marker?.showInfoWindow()
                     }
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation!!, 10f))
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation!!, 10f))
                 }
             }
         } else {

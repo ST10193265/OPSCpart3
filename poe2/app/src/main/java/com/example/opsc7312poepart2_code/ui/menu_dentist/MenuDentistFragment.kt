@@ -1,5 +1,7 @@
 package com.example.poe2.ui.menu_dentist
 
+import android.content.Context
+import android.net.ConnectivityManager
 import androidx.fragment.app.viewModels
 import android.os.Bundle
 import android.util.Log
@@ -32,8 +34,12 @@ class MenuDentistFragment : Fragment() {
 
         ibtnMagageApp.setOnClickListener {
             // Navigate to the BookAppointmentFragment using the NavController
-            findNavController().navigate(R.id.action_nav_menu_dentist_to_nav_dentist_app)
 
+            if (isOnline()) {
+                findNavController().navigate(R.id.action_nav_menu_dentist_to_nav_dentist_app)
+            } else {
+                showToast("No Internet Connection!")
+            }
         }
 
 
@@ -53,16 +59,36 @@ class MenuDentistFragment : Fragment() {
         // Set OnClickListener for the Notifications button
         ibtnNotifications.setOnClickListener {
             // Navigate to the BookAppointmentFragment using the NavController
-          findNavController().navigate(R.id.action_nav_menu_dentist_to_nav_notifications_dentist)
+
+            if (isOnline()) {
+                findNavController().navigate(R.id.action_nav_menu_dentist_to_nav_notifications_dentist)
+            } else {
+                showToast("No Internet Connection!")
+            }
 
         }
 
         // Set OnClickListener for the Notifications button
         ibtnSettings.setOnClickListener {
             // Navigate to the BookAppointmentFragment using the NavController
-            findNavController().navigate(R.id.action_nav_menu_dentist_to_nav_settings_dentist)
+
+            if (isOnline()) {
+                findNavController().navigate(R.id.action_nav_menu_dentist_to_nav_settings_dentist)
+            } else {
+                showToast("No Internet Connection!")
+            }
         }
 
         return view // Make sure to return the view after setting up everything
+    }
+
+    // Check network connectivity
+    private fun isOnline(): Boolean {
+        val connectivityManager = requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connectivityManager.activeNetworkInfo
+        return networkInfo != null && networkInfo.isConnected
+    }
+    private fun showToast(message: String) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
     }
 }

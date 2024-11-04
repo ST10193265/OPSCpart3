@@ -1,7 +1,9 @@
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
     id("com.google.gms.google-services")
+    id("kotlin-kapt")
 }
 
 android {
@@ -44,6 +46,7 @@ android {
         viewBinding = true
         buildConfig = true
     }
+
     dependencies {
         // AndroidX and Material Components
         implementation(libs.androidx.core.ktx.v1101)
@@ -146,5 +149,13 @@ dependencies {
 
     // Biometric library for Android
     implementation ("androidx.biometric:biometric:1.1.0")
+
+    // Room dependencies
+    implementation ("androidx.room:room-runtime:2.5.2")
+
+    kapt("androidx.room:room-compiler:2.5.2")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
 
 }

@@ -1,17 +1,16 @@
 package com.example.poe2.ui.healthzone
 
-import androidx.fragment.app.viewModels
+
+import androidx.navigation.fragment.findNavController
+import com.example.poe2.R
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.ImageButton
-import androidx.navigation.fragment.findNavController
-
-import com.example.poe2.R
+import androidx.fragment.app.Fragment
 
 class HealthzoneFragment : Fragment() {
 

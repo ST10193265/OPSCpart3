@@ -14,14 +14,27 @@ import androidx.navigation.fragment.findNavController
 import com.example.poe2.R
 import com.google.firebase.database.*
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
+import android.net.ConnectivityManager
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.lifecycleScope
+import androidx.room.Room
+import com.example.opsc7312poepart2_code.ui.AppDatabase
+import com.example.opsc7312poepart2_code.ui.User1
+import com.example.opsc7312poepart2_code.ui.UserDao
 import com.example.opsc7312poepart2_code.ui.login_client.LoginClientFragment.Companion.loggedInClientUserId
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import kotlin.math.*
 
@@ -35,6 +48,7 @@ class BookAppClient1Fragment : Fragment() {
     private var userDistanceRadius: Double? = null
     private var userDistanceUnit: String = "km" // Default distance unit
     private val TAG = "BookAppClient1Fragment"
+    private lateinit var appDatabase: AppDatabase
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -47,17 +61,34 @@ class BookAppClient1Fragment : Fragment() {
         val ibtnHome = view.findViewById<ImageButton>(R.id.ibtnHome)
 
         dentistList = ArrayList()
-        listViewAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, dentistList)
+        listViewAdapter =
+            ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, dentistList)
         listView.adapter = listViewAdapter
 
         databaseReference = FirebaseDatabase.getInstance().getReference("dentists")
         database = FirebaseDatabase.getInstance().getReference("clients")
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
-        // Fetch user settings first
-        fetchUserSettings {
-            // Once settings are fetched, fetch dentists with location filtering
-            fetchDentistsWithLocationFiltering()
+
+        appDatabase = Room.databaseBuilder(
+            requireContext(),
+            AppDatabase::class.java, "app_database"
+        ).build()
+
+        if (isOnline()) {
+            // Fetch user settings first
+            fetchUserSettings {
+                // Once settings are fetched, fetch dentists with location filtering
+                fetchDentistsWithLocationFiltering() // Ensure this does not affect list view updates
+            }
+
+            // Fetch data from Firebase when online
+           syncFirebaseWithRoom {
+
+           }
+        } else {
+            // Load dentists from Room when offline
+            loadDentistsFromRoom()
         }
 
         listView.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
@@ -66,12 +97,19 @@ class BookAppClient1Fragment : Fragment() {
                 val bundle = Bundle().apply {
                     putString("selectedDentist", selectedDentist)
                 }
-                findNavController().navigate(R.id.action_nav_book_app_client1_to_nav_book_app_client2, bundle)
+                findNavController().navigate(
+                    R.id.action_nav_book_app_client1_to_nav_book_app_client2,
+                    bundle
+                )
             }
         }
 
         ibtnMaps.setOnClickListener {
-            findNavController().navigate(R.id.action_nav_book_app_client1_to_nav_dentist_maps)
+            if (isOnline()) {
+                findNavController().navigate(R.id.action_nav_book_app_client1_to_nav_dentist_maps)
+            } else {
+                showToast("No Internet Connection!")
+            }
         }
         ibtnHome.setOnClickListener {
             findNavController().navigate(R.id.action_nav_book_app_client1_to_nav_menu_client)
@@ -79,6 +117,11 @@ class BookAppClient1Fragment : Fragment() {
 
         return view
     }
+
+    private fun showToast(message: String) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+    }
+
     private fun fetchUserSettings(onComplete: () -> Unit) {
         // Get the client ID for Firebase
         val clientId = loggedInClientUserId
@@ -214,7 +257,66 @@ class BookAppClient1Fragment : Fragment() {
             null
         }
     }
+
+    // Check network connectivity
+    private fun isOnline(): Boolean {
+        val connectivityManager =
+            requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connectivityManager.activeNetworkInfo
+        return networkInfo != null && networkInfo.isConnected
+    }
+
+    // Sync data from Firebase to Room
+    private fun syncFirebaseWithRoom(onComplete: () -> Unit) {
+        databaseReference.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                // Run Room database operations on a background thread
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    // Clear existing dentists in Room to avoid duplicates
+                    appDatabase.userDao().clearDentists()
+
+                    val dentistList = mutableListOf<User1>() // List to hold dentists
+
+                    for (dentistSnapshot in snapshot.children) {
+                        val name = dentistSnapshot.child("name").getValue(String::class.java) ?: "Unknown"
+                        val user = User1(userId = null.toString(), username = name, password = null.toString(), role = "dentists")
+
+                        // Insert into Room
+                        appDatabase.userDao().insertUser(user)
+                        dentistList.add(user) // Add user to the list
+                    }
+
+                    // Notify that syncing is done, but do NOT update the UI
+                    withContext(Dispatchers.Main) {
+                        onComplete() // Signal that syncing is done
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e(TAG, "Firebase data fetch failed: ${error.message}")
+            }
+        })
+    }
+
+    private fun loadDentistsFromRoom() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val users = withContext(Dispatchers.IO) {
+                appDatabase.userDao().getUsersByRole() // Fetch dentists from Room
+            }
+
+            // Update UI on the main thread
+            dentistList.clear()
+            dentistList.addAll(users.map { it.username ?: "Unknown" }) // Ensure 'username' is a valid property
+            listViewAdapter.notifyDataSetChanged() // Notify the adapter
+        }
+    }
+
+
+
 }
+
+
 
 
 
