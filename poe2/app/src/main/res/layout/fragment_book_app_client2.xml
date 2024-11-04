@@ -43,7 +43,7 @@
             android:layout_height="45dp"
             android:layout_marginStart="4dp"
             android:backgroundTint="@color/lightblue"
-            android:text="@string/b"
+            android:text="@string/book"
             android:textColor="@color/black"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"

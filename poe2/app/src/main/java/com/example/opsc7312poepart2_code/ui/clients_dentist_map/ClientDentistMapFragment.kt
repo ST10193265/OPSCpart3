@@ -3,8 +3,6 @@ package com.example.opsc7312poepart2_code.ui.clients_dentist_map
 import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.os.Bundle
-
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,7 +23,6 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -33,10 +30,6 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import java.io.IOException
 import java.util.Locale
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.sqrt
 
 class ClientDentistMapFragment : Fragment(), OnMapReadyCallback {
 
@@ -93,7 +86,7 @@ class ClientDentistMapFragment : Fragment(), OnMapReadyCallback {
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Log.e(TAG, "Database error: ${error.message}")
+                // Log.e(TAG, "Database error: ${error.message}")
                 Toast.makeText(requireContext(), "Failed to load dentist locations.", Toast.LENGTH_SHORT).show()
             }
         })
@@ -116,15 +109,15 @@ class ClientDentistMapFragment : Fragment(), OnMapReadyCallback {
                 // Ensure the marker is always visible
                 if (marker != null) {
                     marker.isVisible = true
-                    marker?.showInfoWindow()
+                    marker.showInfoWindow()
                 }
-                Log.d(TAG, "Marker added for $name at $latLng")
+                // Log.d(TAG, "Marker added for $name at $latLng")
             } else {
-                Log.e(TAG, "Geocoding failed for address: $address")
+                // Log.e(TAG, "Geocoding failed for address: $address")
             }
         } catch (e: IOException) {
             e.printStackTrace()
-            Log.e(TAG, "Geocoding error: ${e.message}")
+            // Log.e(TAG, "Geocoding error: ${e.message}")
         }
     }
 
@@ -144,9 +137,9 @@ class ClientDentistMapFragment : Fragment(), OnMapReadyCallback {
                     // Ensure the marker is always visible
                     if (marker != null) {
                         marker.isVisible = true
-                        marker?.showInfoWindow()
+                        marker.showInfoWindow()
                     }
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation!!, 10f))
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation!!, 10f))
                 }
             }
         } else {

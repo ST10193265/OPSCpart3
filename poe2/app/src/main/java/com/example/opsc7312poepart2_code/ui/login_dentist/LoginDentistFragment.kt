@@ -62,7 +62,7 @@ class LoginDentistFragment : Fragment() {
         dbReference = database.getReference("dentists")
         auth = FirebaseAuth.getInstance()
 
-        Log.d("LoginDentistFragment", "Firebase initialized, Auth and Database setup complete")
+      //  Log.d("LoginDentistFragment", "Firebase initialized, Auth and Database setup complete")
 
         // Handle login button click
         binding.btnLogin.setOnClickListener {
@@ -126,12 +126,12 @@ class LoginDentistFragment : Fragment() {
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     if (!snapshot.exists()) {
-                        Log.e("LoginDentistFragment", "User $username not found in the database")
+                     //   Log.e("LoginDentistFragment", "User $username not found in the database")
                         showToast("Error: User not found.")
                         return
                     }
 
-                    Log.d("LoginDentistFragment", "User $username found in the database")
+                  //  Log.d("LoginDentistFragment", "User $username found in the database")
                     val userSnapshot = snapshot.children.first()
                     var userId = userSnapshot.child("id").getValue(String::class.java).orEmpty()
                     val role = userSnapshot.child("role").getValue(String::class.java).orEmpty().ifEmpty { "dentist" }
@@ -141,31 +141,31 @@ class LoginDentistFragment : Fragment() {
                     //getUserIdFromFirebase(username) // Fetch and store user ID
                     userId = loggedInDentistUserId.toString()
 
-                    Log.d("LoginDentistFragment", "loggedInDentistUserId is: $loggedInDentistUserId")
-                    Log.d("LoginDentistFragment", "userId is: $userId")
+                  //  Log.d("LoginDentistFragment", "loggedInDentistUserId is: $loggedInDentistUserId")
+                  //  Log.d("LoginDentistFragment", "userId is: $userId")
 
                     val biometricAuthenticator = BiometricAuthenticator(requireActivity(), {
-                        Log.d("LoginDentistFragment", "Biometric authentication successful for user: $username")
+                       // Log.d("LoginDentistFragment", "Biometric authentication successful for user: $username")
 
                         isBiometricLogin = true
-                        Log.d("LoginDentistFragment", "isBiometricLogin: $isBiometricLogin")
+                      //  Log.d("LoginDentistFragment", "isBiometricLogin: $isBiometricLogin")
 
                         val jwtToken = generateJwtToken(userId, role)
-                        Log.d("LoginDentistFragment", "JWT Token generated: $jwtToken")
+                      //  Log.d("LoginDentistFragment", "JWT Token generated: $jwtToken")
 
-                        Log.d("LoginDentistFragment", "Navigating to client menu after successful authentication")
+                      //  Log.d("LoginDentistFragment", "Navigating to client menu after successful authentication")
                         findNavController().navigate(R.id.action_nav_login_dentist_to_nav_menu_dentist)
                     }, { errorMessage ->
                         showToast(errorMessage)
-                        Log.e("LoginDentistFragment", "Biometric authentication error: $errorMessage")
+                      //  Log.e("LoginDentistFragment", "Biometric authentication error: $errorMessage")
                     })
 
-                    Log.d("LoginDentistFragment", "Starting biometric authentication process")
+                   // Log.d("LoginDentistFragment", "Starting biometric authentication process")
                     biometricAuthenticator.authenticate()
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Log.e("LoginDentistFragment", "Database error: ${error.message}")
+                   // Log.e("LoginDentistFragment", "Database error: ${error.message}")
                     showToast("Error: Database connection failed.")
                 }
             })
@@ -220,7 +220,7 @@ class LoginDentistFragment : Fragment() {
                         // Generate JWT token with ID and role
                         val jwtToken = generateJwtToken(userId, role)
                         saveToken(jwtToken) // Save the generated token
-                        Log.d("LoginDentistFragment", "JWT Token generated: $jwtToken")
+                      //  Log.d("LoginDentistFragment", "JWT Token generated: $jwtToken")
 
                         Toast.makeText(requireContext(), "Login successful!", Toast.LENGTH_SHORT).show()
                         findNavController().navigate(R.id.action_nav_login_dentist_to_nav_menu_dentist)
@@ -243,14 +243,14 @@ class LoginDentistFragment : Fragment() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     loggedInDentistUserId = snapshot.children.first().key // Get user ID
-                    Log.d("LoginDentistFragment", "Logged in user ID: $loggedInDentistUserId")
+                  //  Log.d("LoginDentistFragment", "Logged in user ID: $loggedInDentistUserId")
                 } else {
-                    Log.d("LoginDentistFragment", "User ID not found for $username")
+                  //  Log.d("LoginDentistFragment", "User ID not found for $username")
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Log.e("LoginDentistFragment", "Database error when retrieving user ID: ${error.message}")
+               // Log.e("LoginDentistFragment", "Database error when retrieving user ID: ${error.message}")
             }
         })
     }
@@ -258,11 +258,11 @@ class LoginDentistFragment : Fragment() {
     private fun saveToken(token: String) {
         val sharedPref = requireActivity().getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
         sharedPref.edit().putString("jwt_token", token).apply()
-        Log.d("TokenDebug", "Token saved: $token") // Log the token when saved
+      //  Log.d("TokenDebug", "Token saved: $token") // Log the token when saved
     }
 
     private fun generateJwtToken(id: String, role: String): String {
-        Log.d("LoginClientFragment", "Generating JWT Token for ID: $id with role: $role")
+       // Log.d("LoginClientFragment", "Generating JWT Token for ID: $id with role: $role")
         val algorithm = Algorithm.HMAC256("supersecretkey")
 
         val token = JWT.create()

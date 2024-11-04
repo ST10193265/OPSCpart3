@@ -76,16 +76,16 @@ class MenuClientFragment : Fragment() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     loggedInClientUserId = snapshot.children.first().key // Get user ID
-                    Log.d("LoginClientFragment", "Logged in user ID: $loggedInClientUserId")
+                   // Log.d("LoginClientFragment", "Logged in user ID: $loggedInClientUserId")
                     // Retrieve FCM token in a background thread
                     fetchFcmToken()
                 } else {
-                    Log.d("LoginClientFragment", "User ID not found for $username")
+                   // Log.d("LoginClientFragment", "User ID not found for $username")
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Log.e("LoginClientFragment", "Database error when retrieving user ID: ${error.message}")
+             //   Log.e("LoginClientFragment", "Database error when retrieving user ID: ${error.message}")
             }
         })
     }
@@ -139,10 +139,10 @@ class MenuClientFragment : Fragment() {
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 fcmToken = task.result
-                Log.d("FCM", "Retrieved FCM Token: $fcmToken")
+               // Log.d("FCM", "Retrieved FCM Token: $fcmToken")
                 fetchNotifications()
             } else {
-                Log.e("FCM", "Failed to retrieve FCM Token")
+               // Log.e("FCM", "Failed to retrieve FCM Token")
             }
         }
     }
@@ -153,32 +153,32 @@ class MenuClientFragment : Fragment() {
         val authToken = token?.let { "$it" }
         val Id = loggedInClientUserId
 
-        Log.d("NotificationsClient", "Attempting to fetch notifications...")
-        Log.d("NotificationsClient", "AuthToken: $authToken, UserId: $Id, FCM Token: $fcmToken")
+       // Log.d("NotificationsClient", "Attempting to fetch notifications...")
+       // Log.d("NotificationsClient", "AuthToken: $authToken, UserId: $Id, FCM Token: $fcmToken")
 
         // Check for null values
         if (Id == null || authToken == null || fcmToken == null) {
-            Log.e("NotificationsClient", "Cannot fetch notifications: Missing UserId, AuthToken, or FCM Token")
+          //  Log.e("NotificationsClient", "Cannot fetch notifications: Missing UserId, AuthToken, or FCM Token")
             return
         }
 
         apiService.getPatientNotifications(authToken, Id!!, fcmToken!!).enqueue(object : Callback<NotificationsResponse> {
             override fun onResponse(call: Call<NotificationsResponse>, response: Response<NotificationsResponse>) {
-                Log.d("NotificationsClient", "API Response Code: ${response.code()}")
+              //  Log.d("NotificationsClient", "API Response Code: ${response.code()}")
                 if (response.isSuccessful && response.body() != null) {
                     val notifications = response.body()!!.notifications
-                    Log.d("NotificationsClient", "Notifications fetched: ${notifications.size}")
+                  //  Log.d("NotificationsClient", "Notifications fetched: ${notifications.size}")
                     notificationsList.clear()
                     notificationsList.addAll(notifications.map { it.message })
                     notificationsAdapter.notifyDataSetChanged()
                     updateNotificationCount(notifications.size)
                 } else {
-                    Log.e("NotificationsClient", "Failed to fetch notifications: ${response.errorBody()?.string()}")
+                  //  Log.e("NotificationsClient", "Failed to fetch notifications: ${response.errorBody()?.string()}")
                 }
             }
 
             override fun onFailure(call: Call<NotificationsResponse>, t: Throwable) {
-                Log.e("NotificationsClient", "API call failed: ${t.message}")
+             //   Log.e("NotificationsClient", "API call failed: ${t.message}")
             }
         })
     }
