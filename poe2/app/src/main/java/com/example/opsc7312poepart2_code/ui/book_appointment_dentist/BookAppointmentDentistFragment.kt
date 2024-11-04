@@ -165,6 +165,9 @@ class BookAppointmentDentistFragment : Fragment() {
 
         // Set the highlighted events on the calendar view
         calendarView1.setEvents(events)
+
+        
+    // SB's attempts to preforming fragments needed a work as it was buggy
     }
 }
 
