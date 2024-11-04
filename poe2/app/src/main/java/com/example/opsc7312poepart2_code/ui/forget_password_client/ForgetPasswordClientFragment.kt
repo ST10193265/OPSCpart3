@@ -152,4 +152,3 @@ class ForgetPasswordClientFragment : Fragment() {
     // The code above was taken and adapted from Hyperskill
     // https://hyperskill.org/learn/step/36628
 }
-s

@@ -6,6 +6,7 @@ import android.net.ConnectivityManager
 import android.os.Bundle
 import android.text.InputType
 import android.util.Base64
+import android.util.Log
 // import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +15,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.room.Room
+
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.example.opsc7312poepart2_code.ui.AppDatabase
@@ -85,7 +87,7 @@ class LoginClientFragment : Fragment() {
                 // Log.d("LoginClientFragment", "Attempting to login user: $username")
                 loginUser(username, password)
 
-                Log.d("LoginClientFragment", "Attempting to login user: $username")
+              //  Log.d("LoginClientFragment", "Attempting to login user: $username")
                 if (isOnline()) {
                     loginUser(username, password)
                 }else {
@@ -142,7 +144,7 @@ class LoginClientFragment : Fragment() {
         startActivityForResult(signInIntent, RC_SIGN_IN)
 
         if (isOnline()) {
-        Log.d("LoginClientFragment", "Starting Google Sign-In")
+        //Log.d("LoginClientFragment", "Starting Google Sign-In")
         val signInIntent = mGoogleSignInClient.signInIntent
         startActivityForResult(signInIntent, RC_SIGN_IN)
       } else {
@@ -273,7 +275,7 @@ class LoginClientFragment : Fragment() {
                         // Log.d("LoginClientFragment", "JWT Token generated: $jwtToken")
 
                         saveToken(jwtToken) // Save the generated token
-                        Log.d("LoginClientFragment", "JWT Token generated: $jwtToken")
+                      //  Log.d("LoginClientFragment", "JWT Token generated: $jwtToken")
 
                         Toast.makeText(requireContext(), "Login successful!", Toast.LENGTH_SHORT).show()
                         saveUserToLocalDatabase(userId, username, password, role)
@@ -296,17 +298,26 @@ class LoginClientFragment : Fragment() {
         })
     }
 
-    private fun generateJwtToken(userId: String, role: String): String {
-        val algorithm = Algorithm.HMAC256("your-secret-key")
-        return JWT.create()
-            .withIssuer("your-issuer")
-            .withClaim("userId", userId)
-            .withClaim("role", role)
-            .withIssuedAt(Date())
-            .withExpiresAt(Date(System.currentTimeMillis() + 3600000)) // Token expires in 1 hour
-            .sign(algorithm)
+    private fun saveToken(token: String) {
+        val sharedPref = requireActivity().getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+        sharedPref.edit().putString("jwt_token", token).apply()
+        //  Log.d("TokenDebug", "Token saved: $token") // Log the token when saved
     }
 
+    private fun generateJwtToken(id: String, role: String): String {
+        // Log.d("LoginClientFragment", "Generating JWT Token for ID: $id with role: $role")
+        val algorithm = Algorithm.HMAC256("supersecretkey")
+
+        val token = JWT.create()
+            .withIssuer("auth0")
+            .withClaim("id", id)
+            .withClaim("role", role)
+            .withExpiresAt(Date(System.currentTimeMillis() + 3600000))
+            .sign(algorithm)
+
+        saveToken(token) // Save token after generation
+        return token
+    }
     private fun hashPassword(password: String, salt: ByteArray): String {
         val md = MessageDigest.getInstance("SHA-256")
         md.update(salt)

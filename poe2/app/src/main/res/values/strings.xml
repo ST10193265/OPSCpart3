@@ -57,4 +57,6 @@
     <string name="enddate">End Date:</string>
     <string name="reason">Reason:</string>
     <string name="submit">Submit</string>
+
+    <string name="booktimeoff">Book Time Off</string>
 </resources>
