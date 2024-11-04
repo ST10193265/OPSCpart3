@@ -1,6 +1,5 @@
 package com.example.opsc7312poepart2_code.ui.book_app_client2
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,19 +12,20 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.fragment.findNavController
 import com.example.poe2.R
 import com.example.opsc7312poepart2_code.ui.Appointments
 import com.example.opsc7312poepart2_code.ui.ApiClient
 import com.example.opsc7312poepart2_code.ui.ApiService
+import com.example.opsc7312poepart2_code.ui.BookTimeOff
 import com.example.opsc7312poepart2_code.ui.login_client.LoginClientFragment
-import com.example.opsc7312poepart2_code.ui.login_client.LoginClientFragment.Companion.loggedInClientUserId
 import com.google.firebase.database.*
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class BookAppClient2Fragment : Fragment() {
 
@@ -36,9 +36,7 @@ class BookAppClient2Fragment : Fragment() {
     private lateinit var etxtDescription: EditText
 
     private lateinit var dentistDatabase: DatabaseReference
-    private lateinit var appointmentssDatabase: DatabaseReference
     private lateinit var clientDatabase: DatabaseReference
-
     private lateinit var apiService: ApiService
 
     private var dentistId: String? = null
@@ -50,7 +48,7 @@ class BookAppClient2Fragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         val view = inflater.inflate(R.layout.fragment_book_app_client2, container, false)
 
         txtSelectedDentist = view.findViewById(R.id.txtSelectedDentist)
@@ -60,9 +58,7 @@ class BookAppClient2Fragment : Fragment() {
         etxtDescription = view.findViewById(R.id.etxtDescription)
 
         dentistDatabase = FirebaseDatabase.getInstance().getReference("dentists")
-        appointmentssDatabase = FirebaseDatabase.getInstance().getReference("appointments")
         clientDatabase = FirebaseDatabase.getInstance().getReference("clients")
-
         apiService = ApiClient.createApiService(requireContext())
 
         val selectedDentist = arguments?.getString("selectedDentist")
@@ -77,10 +73,7 @@ class BookAppClient2Fragment : Fragment() {
             Log.d("BookAppClient2Fragment", "Selected Date: $selectedDate")
         }
 
-        if (selectedDentist != null) {
-            getDentistIdByName(selectedDentist)
-        }
-
+        selectedDentist?.let { getDentistIdByName(it) }
         getClientIdByUsername(LoginClientFragment.loggedInClientUsername ?: "")
 
         view.findViewById<View>(R.id.btnBook).setOnClickListener {
@@ -89,12 +82,11 @@ class BookAppClient2Fragment : Fragment() {
                 Log.e("BookAppClient2Fragment", "Attempted to book appointment without selecting a date.")
                 return@setOnClickListener
             }
-            bookAppointment()
+            val selectedSlot = spinnerTime.selectedItem.toString()
+            checkDentistTimeOffAndBook(selectedSlot)
         }
 
-        view.findViewById<View>(R.id.btnCancel).setOnClickListener {
-            clearFields()
-        }
+        view.findViewById<View>(R.id.btnCancel).setOnClickListener { clearFields() }
 
         view.findViewById<View>(R.id.ibtnBack).setOnClickListener {
             findNavController().navigate(R.id.action_nav_book_app_client2_to_nav_book_app_client1)
@@ -104,12 +96,7 @@ class BookAppClient2Fragment : Fragment() {
     }
 
     private fun populateTimeSlots() {
-        val timeSlots = listOf(
-            "Select a time",
-            "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
-            "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM"
-        )
-
+        val timeSlots = listOf("Select a time", "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM")
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, timeSlots)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerTime.adapter = adapter
@@ -121,8 +108,8 @@ class BookAppClient2Fragment : Fragment() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     for (dentistSnapshot in snapshot.children) {
-                        dentistId = dentistSnapshot.key // Get the dentist ID
-                        dentistUsername = dentistSnapshot.child("username").getValue(String::class.java) // Retrieve dentist's username
+                        dentistId = dentistSnapshot.key
+                        dentistUsername = dentistSnapshot.child("username").getValue(String::class.java)
                         Log.d("BookAppClient2Fragment", "Dentist ID found: $dentistId, Username: $dentistUsername")
                     }
                 } else {
@@ -137,31 +124,14 @@ class BookAppClient2Fragment : Fragment() {
         })
     }
 
-    private fun getUserIdFromFirebase(username: String) {
-        clientDatabase.orderByChild("username").equalTo(username).addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()) {
-                    loggedInClientUserId = snapshot.children.first().key // Get user ID
-                    Log.d("LoginClientFragment", "Logged in user ID: $loggedInClientUserId")
-                } else {
-                    Log.d("LoginClientFragments", "User ID not found for $username")
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("LoginClientFragment", "Database error when retrieving user ID: ${error.message}")
-            }
-        })
-    }
-
     private fun getClientIdByUsername(username: String) {
         Log.d("BookAppClient2Fragment", "Fetching client ID for: $username")
         clientDatabase.orderByChild("username").equalTo(username).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     for (clientSnapshot in snapshot.children) {
-                        userId = clientSnapshot.key // Get the client ID from the snapshot
-                        clientUsername = username // Store the retrieved username
+                        userId = clientSnapshot.key
+                        clientUsername = username
                         Log.d("BookAppClient2Fragment", "Client ID found: $userId, Username: $clientUsername")
                     }
                 } else {
@@ -176,16 +146,57 @@ class BookAppClient2Fragment : Fragment() {
         })
     }
 
-    private fun bookAppointment() {
+    private fun checkDentistTimeOffAndBook(selectedSlot: String) {
         if (dentistId == null || userId == null || clientUsername == null) {
             Toast.makeText(requireContext(), "Please select a dentist and ensure you are logged in.", Toast.LENGTH_SHORT).show()
             Log.e("BookAppClient2Fragment", "Dentist ID or Client ID is null.")
             return
         }
 
-        val selectedSlot = spinnerTime.selectedItem.toString()
-        val description = etxtDescription.text.toString()
+        FirebaseDatabase.getInstance().getReference("booktimeoff")
+            .orderByChild("dentistId").equalTo(dentistId)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    var isAvailable = true
 
+                    for (timeOffSnapshot in snapshot.children) {
+                        val timeOff = timeOffSnapshot.getValue(BookTimeOff::class.java)
+                        if (timeOff != null && isDateInRange(selectedDate ?: "", timeOff.startDate, timeOff.endDate)) {
+                            isAvailable = false
+                            break
+                        }
+                    }
+
+                    if (isAvailable) {
+                        bookAppointment(selectedSlot)
+                    } else {
+                        Toast.makeText(requireContext(), "The dentist is not available on the selected date.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Toast.makeText(requireContext(), "Failed to check availability.", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+
+    private fun isDateInRange(dateToCheck: String, startDate: String, endDate: String): Boolean {
+        val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val dateCheck = dateFormatter.parse(dateToCheck)
+        val dateStart = dateFormatter.parse(startDate)
+        val dateEnd = dateFormatter.parse(endDate)
+
+        return dateCheck != null && dateCheck in dateStart..dateEnd
+    }
+
+    private fun bookAppointment(selectedSlot: String) {
+        if (dentistId == null || userId == null || clientUsername == null) {
+            Toast.makeText(requireContext(), "Please select a dentist and ensure you are logged in.", Toast.LENGTH_SHORT).show()
+            Log.e("BookAppClient2Fragment", "Dentist ID or Client ID is null.")
+            return
+        }
+
+        val description = etxtDescription.text.toString()
         val appointment = Appointments(
             date = selectedDate ?: "",
             dentist = dentistUsername ?: "",
@@ -193,7 +204,7 @@ class BookAppClient2Fragment : Fragment() {
             description = description,
             slot = selectedSlot,
             userId = userId!!,
-            clientUsername = clientUsername ?: "", // Include client username
+            clientUsername = clientUsername ?: "",
             status = "pending"
         )
 
@@ -203,31 +214,18 @@ class BookAppClient2Fragment : Fragment() {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
                     Toast.makeText(requireContext(), "Appointment booked successfully!", Toast.LENGTH_SHORT).show()
-                    Log.d("BookAppClient2Fragment", "Appointment booked successfully: ${response.body()}")
-                    // Create and send the local broadcast
-                    val intent = Intent("FCM_NOTIFICATION").apply {
-                        putExtra("message", "Your appointment has been booked successfully!")
-                        putExtra("timestamp", System.currentTimeMillis()) // Add timestamp here
-                    }
-                    context?.let { LocalBroadcastManager.getInstance(it).sendBroadcast(intent) }
-                    Log.d("BookAppClient2Fragment", "Broadcast sent with message: 'Your appointment has been booked successfully!'")
-
                     clearFields()
                 } else {
-                    Log.e("BookAppClient2Fragment", "Failed to book appointment: ${response.code()} - ${response.message()}")
-                    response.errorBody()?.let { errorBody ->
-                        Log.e("BookAppClient2Fragment", "Response body: ${errorBody.string()}")
-                    }
-                    Toast.makeText(requireContext(), "Failed to book appointment: ${response.message()}", Toast.LENGTH_SHORT).show()
+                    Log.e("BookAppClient2Fragment", "Failed to book appointment: ${response.errorBody()?.string()}")
+                    Toast.makeText(requireContext(), "Failed to book appointment.", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                Log.e("BookAppClient2Fragment", "Error booking appointment: ${t.message}")
-                Toast.makeText(requireContext(), "Error booking appointment: ${t.message}", Toast.LENGTH_SHORT).show()
+                Log.e("BookAppClient2Fragment", "API call failed: ${t.message}")
+                Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
-
     }
 
     private fun clearFields() {
@@ -235,5 +233,9 @@ class BookAppClient2Fragment : Fragment() {
         txtDate.text = ""
         spinnerTime.setSelection(0)
         etxtDescription.text.clear()
+        selectedDate = null
+        dentistId = null
+        userId = null
+        Log.d("BookAppClient2Fragment", "Fields cleared.")
     }
 }

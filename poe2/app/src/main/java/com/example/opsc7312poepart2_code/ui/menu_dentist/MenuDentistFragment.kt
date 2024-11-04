@@ -30,7 +30,7 @@ class MenuDentistFragment : Fragment() {
         val ibtnSettings: ImageButton = view.findViewById(R.id.ibtnSettings)
         val ibtnLogout: Button = view.findViewById(R.id.btnLogOut)
         val ibtnMagageApp: ImageButton = view.findViewById(R.id.ibtnMagageApp)
-
+        val ibtnTimeOff: ImageButton = view.findViewById(R.id.ibtnBookTimeOff)
 
         ibtnMagageApp.setOnClickListener {
             // Navigate to the BookAppointmentFragment using the NavController
@@ -40,6 +40,12 @@ class MenuDentistFragment : Fragment() {
             } else {
                 showToast("No Internet Connection!")
             }
+        }
+
+        ibtnTimeOff.setOnClickListener {
+            // Navigate to the BookAppointmentFragment using the NavController
+            findNavController().navigate(R.id.action_nav_menu_dentist_to_bookTimeOffFragment)
+
         }
 
 

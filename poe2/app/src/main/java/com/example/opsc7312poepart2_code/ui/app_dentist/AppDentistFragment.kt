@@ -395,11 +395,11 @@ class AppDentistFragment : Fragment() {
                     )
                     appointmentRef.updateChildren(updates).addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            Toast.makeText(requireContext(), "Booking approved successfully", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext(), "Booking rescheduled successfully", Toast.LENGTH_SHORT).show()
                             Log.d("AppDentistFragment", "approveBooking: Successfully approved booking for appointment ID: $appointmentId")
                             fetchAppointments() // Refresh appointments list
                         } else {
-                            Toast.makeText(requireContext(), "Failed to approve booking", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext(), "Failed to reschedule booking", Toast.LENGTH_SHORT).show()
                             Log.e("AppDentistFragment", "approveBooking: Failed to update appointment status")
                         }
                     }
@@ -442,11 +442,11 @@ class AppDentistFragment : Fragment() {
                     )
                     appointmentRef.updateChildren(updates).addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            Toast.makeText(requireContext(), "Booking approved successfully", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext(), "Booking canceled successfully", Toast.LENGTH_SHORT).show()
                             Log.d("AppDentistFragment", "approveBooking: Successfully approved booking for appointment ID: $appointmentId")
                             fetchAppointments() // Refresh appointments list
                         } else {
-                            Toast.makeText(requireContext(), "Failed to approve booking", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext(), "Failed to cancel booking", Toast.LENGTH_SHORT).show()
                             Log.e("AppDentistFragment", "approveBooking: Failed to update appointment status")
                         }
                     }

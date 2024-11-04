@@ -40,6 +40,7 @@ import retrofit2.Response
 
 class NotificationsDentistFragment : Fragment() {
 
+
     private var _binding: FragmentNotificationsDentistBinding? = null
     private val binding get() = _binding!!
     private lateinit var ibtnHome: ImageButton

@@ -95,6 +95,12 @@ data class Appointments(
     var status: String = ""        // Status of the appointment
 )
 
+data class BookTimeOff(
+    val dentistId: String? = "",
+    val startDate: String = "",   // Start date of the time off, e.g., "dd/MM/yyyy"
+    val endDate: String = "",     // End date of the time off, e.g., "dd/MM/yyyy"
+    val description: String = ""  // Optional description for the time off
+)
 
 
 data class User(

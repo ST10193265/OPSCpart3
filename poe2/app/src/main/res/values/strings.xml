@@ -45,6 +45,17 @@
     <string name="description">Description:</string>
     <string name="appointmentsFilter">(List filtered according to user settings distance preference)</string>
     <string name="appointmentsMaps">View dentists on map (Unfiltered)</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="appointments2">Appointment booked with:</string>
+    <string name="book">Book</string>
+
+    <string name="listApp">List of Appointments:</string>
+    <string name="reschedule">Reschedule</string>
+
+
+    <string name="timeoff">Schedule Time Off</string>
+    <string name="startdate">Start Date:</string>
+    <string name="enddate">End Date:</string>
+    <string name="reason">Reason:</string>
+    <string name="submit">Submit</string>
 </resources>
