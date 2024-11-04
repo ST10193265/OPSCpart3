@@ -101,7 +101,7 @@ class ViewAppointmentDentistFragment : Fragment() {
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Log.e("ViewAppointmentDentistFragment", "Failed to load appointments: ${error.message}")
+             //   Log.e("ViewAppointmentDentistFragment", "Failed to load appointments: ${error.message}")
                 Toast.makeText(requireContext(), "Failed to load appointments.", Toast.LENGTH_SHORT).show()
             }
         })
@@ -115,20 +115,20 @@ class ViewAppointmentDentistFragment : Fragment() {
                 val date = dateFormat.parse(dateString)
                 Calendar.getInstance().apply { time = date } // Log each parsed date
             } catch (e: ParseException) {
-                Log.e("ViewAppointmentDentistFragment", "Invalid date format: $dateString")
+             //   Log.e("ViewAppointmentDentistFragment", "Invalid date format: $dateString")
                 null
             }
         }
 
         // Create and log EventDay objects to confirm correct setup
         val events = datesWithAppointments.map { calendar ->
-            Log.d("ViewAppointmentDentistFragment", "Adding event on: ${calendar.time}")
+          //  Log.d("ViewAppointmentDentistFragment", "Adding event on: ${calendar.time}")
             EventDay(calendar, R.drawable.redcircle, Color.RED)
         }
 
         // Apply events to CalendarView and verify that events are being set
         calendarView.setEvents(events)
-        Log.d("ViewAppointmentDentistFragment", "Events set for dates with appointments.")
+      //  Log.d("ViewAppointmentDentistFragment", "Events set for dates with appointments.")
     }
 
 }

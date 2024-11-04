@@ -19,7 +19,6 @@
     <string name="cancel">Cancel</string>
     <string name="search_dentist">Search the name of a dentist:</string>
 
-    // strings for the healthzone
     <string name="wvFloss"> How to Floss.</string>
     <string name="wvDentalTrouble"> Early signs of Dental Trouble.</string>
     <string name="wvXrays"> Are Dental X-rays bad?</string>
