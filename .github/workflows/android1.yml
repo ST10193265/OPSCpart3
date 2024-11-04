@@ -10,17 +10,17 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest 
+    runs-on: macos-latest
 
     steps:
       - name: Checkout the code
         uses: actions/checkout@v3
 
-      - name: Set up JDK 17 
+      - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '17' 
+          java-version: '17'
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v3
@@ -33,7 +33,7 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Set permissions for Gradlew
-        run: chmod +x poe2/gradlew  
+        run: chmod +x poe2/gradlew
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v2
@@ -42,8 +42,12 @@ jobs:
           build-tools: 30.0.2
           components: build-tools;30.0.2
 
-      - name: Build with Gradle (Skip Lint Checks)
-        run: cd poe2 && ./gradlew build --stacktrace --no-lint
+      - name: Clean project
+        run: cd poe2 && ./gradlew clean
+
+      - name: Build with Gradle
+        run: cd poe2 && ./gradlew build --stacktrace --warning-mode=none --no-daemon
 
       - name: Run Unit Tests
         run: cd poe2 && ./gradlew test --stacktrace
+
