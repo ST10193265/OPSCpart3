@@ -157,6 +157,8 @@ class LoginClientFragment : Fragment() {
         }
 
     }
+    // The code above initiates Google Sign-In using GoogleSignInClient.
+    // https://developers.google.com/android/reference/com/google/android/gms/auth/api/signin/GoogleSignInClient
 
     private fun initiateBiometricLogin() {
         if (isOnline()) {
@@ -322,11 +324,14 @@ class LoginClientFragment : Fragment() {
         saveToken(token) // Save token after generation
         return token
     }
+
     private fun hashPassword(password: String, salt: ByteArray): String {
         val md = MessageDigest.getInstance("SHA-256")
         md.update(salt)
         return Base64.encodeToString(md.digest(password.toByteArray()), Base64.DEFAULT)
     }
+    // the code above was taken and adpated from Hyperskill
+    // https://hyperskill.org/learn/step/36628
 
     private fun getUserIdFromFirebase(username: String) {
         dbReference.orderByChild("username").equalTo(username)
@@ -355,6 +360,9 @@ class LoginClientFragment : Fragment() {
         }
         binding.etxtPassword.setSelection(binding.etxtPassword.text.length) // Move cursor to the end of the text
     }
+    // code above was taken and adapted from Andriod Developers.
+    // https://developer.android.com/reference/android/widget/EditText#attr_android:inputType
+
 
     // Offline login using local Room database
     private fun loginUserOffline(username: String, password: String) {
@@ -380,7 +388,8 @@ class LoginClientFragment : Fragment() {
             }
         }
     }
-
+    // The code above uses the ConnectivityManager to check the network connectivity status.
+    // https://developer.android.com/training/basics/network-ops/connecting
 
     // Check network connectivity
     private fun isOnline(): Boolean {
@@ -388,6 +397,9 @@ class LoginClientFragment : Fragment() {
         val networkInfo = connectivityManager.activeNetworkInfo
         return networkInfo != null && networkInfo.isConnected
     }
+    // The code above uses the ConnectivityManager to check the network connectivity status.
+    // https://developer.android.com/training/basics/network-ops/connecting
+
     private fun saveUserToLocalDatabase(userId: String, username: String, password: String, role: String) {
         val user = User1(userId = userId, username = username, password = password, role = role)
         CoroutineScope(Dispatchers.IO).launch {

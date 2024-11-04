@@ -129,6 +129,8 @@ class BookAppClient2Fragment : Fragment() {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerTime.adapter = adapter
     }
+    // The code above populates a spinner with predefined time slots.
+    //https://developer.android.com/guide/widgets/spinner
 
     private fun getDentistIdByName(dentistName: String) {
         Log.d("BookAppClient2Fragment", "Fetching dentist ID for: $dentistName")
@@ -268,6 +270,9 @@ class BookAppClient2Fragment : Fragment() {
             }
         })
     }
+    // The code above handles booking an appointment via an API using Retrofit.
+    // https://square.github.io/retrofit/
+
 
     private fun saveAppointmentOffline(selectedSlot: String) {
         val description = etxtDescription.text.toString()

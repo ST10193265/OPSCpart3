@@ -160,15 +160,28 @@ class RegisterClientFragment : Fragment() {
             }
     }
 
+    // Function to generate a salt for password hashing
     private fun generateSalt(): ByteArray {
-        return ByteArray(16).apply { SecureRandom().nextBytes(this) }
+        val salt = ByteArray(16)
+        SecureRandom().nextBytes(salt)
+        // Log.d("ForgetPasswordDentistFragment", "Generated salt: ${Base64.encodeToString(salt, Base64.DEFAULT)}")
+        return salt
     }
+    // the code above was taken and apapted from StackOverFlow
+    // https://stackoverflow.com/questions/78309846/javax-crypto-aeadbadtagexception-bad-decrypt-in-aes256-decryption
+    // Jagar
+    // https://stackoverflow.com/users/12053756/jagar
 
+    // Function to hash the password using SHA-256
     private fun hashPassword(password: String, salt: ByteArray): String {
         val digest = MessageDigest.getInstance("SHA-256")
         digest.update(salt)
-        return Base64.encodeToString(digest.digest(password.toByteArray()), Base64.DEFAULT)
+        val hashedPassword = Base64.encodeToString(digest.digest(password.toByteArray()), Base64.DEFAULT)
+        // Log.d("ForgetPasswordDentistFragment", "Hashed password: $hashedPassword")
+        return hashedPassword
     }
+    // the code above was taken and adpated from Hyperskill
+    // https://hyperskill.org/learn/step/36628
 
     private fun clearFields() {
         with(binding) {
