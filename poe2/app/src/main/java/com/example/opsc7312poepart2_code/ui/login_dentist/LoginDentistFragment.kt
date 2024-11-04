@@ -2,6 +2,7 @@ package com.example.opsc7312poepart2_code.ui.login_dentist
 
 import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
 import android.os.Bundle
 import android.text.InputType
 import android.util.Base64
@@ -12,9 +13,12 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import androidx.room.Room
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.example.opsc7312poepart2_code.ui.AppDatabase
 import com.example.opsc7312poepart2_code.ui.BiometricAuthenticator
+import com.example.opsc7312poepart2_code.ui.User1
 import com.example.opsc7312poepart2_code.ui.login_client.LoginClientFragment.Companion.loggedInClientUserId
 import com.example.opsc7312poepart2_code.ui.login_client.LoginClientFragment.Companion.loggedInClientUsername
 import com.example.poe2.R
@@ -28,6 +32,10 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 import java.util.Date
 
@@ -35,7 +43,7 @@ class LoginDentistFragment : Fragment() {
 
     private var _binding: FragmentLoginDentistBinding? = null
     private val binding get() = _binding!!
-
+    private lateinit var appDatabase: AppDatabase
     private lateinit var database: FirebaseDatabase
     private lateinit var dbReference: DatabaseReference
     private lateinit var auth: FirebaseAuth
@@ -56,7 +64,10 @@ class LoginDentistFragment : Fragment() {
     ): View {
         _binding = FragmentLoginDentistBinding.inflate(inflater, container, false)
         val root: View = binding.root
-
+        appDatabase = Room.databaseBuilder(
+            requireContext(),
+            AppDatabase::class.java, "app_database"
+        ).build()
         // Initialize Firebase Database and Auth
         database = FirebaseDatabase.getInstance()
         dbReference = database.getReference("dentists")
@@ -70,7 +81,12 @@ class LoginDentistFragment : Fragment() {
             val password = binding.etxtPassword.text.toString().trim()
 
             if (username.isNotEmpty() && password.isNotEmpty()) {
+                if (isOnline()) {
                 loginUser(username, password)
+                    } else {
+                    loginUserOffline(username, password)
+                }
+
             } else {
                 showToast("Please enter both username and password.")
             }
@@ -111,16 +127,18 @@ class LoginDentistFragment : Fragment() {
 
     // Initiate Google Sign-In
     private fun signIn() {
-        val signInIntent = mGoogleSignInClient.signInIntent
-        startActivityForResult(signInIntent, RC_SIGN_IN)
+        if (isOnline()) {
+            val signInIntent = mGoogleSignInClient.signInIntent
+            startActivityForResult(signInIntent, RC_SIGN_IN)
+        }else {
+            showToast("No Internet Connection!")
+
+        }
     }
     private fun initiateBiometricLogin() {
-        val username = binding.etxtUsername.text.toString().trim()
+        if (isOnline()) {
+            val username = binding.etxtUsername.text.toString().trim()
 
-        if (username.isEmpty()) {
-            showToast("Error: Username is required.")
-            return
-        }
 
         dbReference.orderByChild("username").equalTo(username)
             .addListenerForSingleValueEvent(object : ValueEventListener {
@@ -170,6 +188,79 @@ class LoginDentistFragment : Fragment() {
                 }
             })
 
+            if (username.isEmpty()) {
+                showToast("Error: Username is required.")
+                return
+            }
+
+            dbReference.orderByChild("username").equalTo(username)
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        if (!snapshot.exists()) {
+                            Log.e(
+                                "LoginDentistFragment",
+                                "User $username not found in the database"
+                            )
+                            showToast("Error: User not found.")
+                            return
+                        }
+
+                        Log.d("LoginDentistFragment", "User $username found in the database")
+                        val userSnapshot = snapshot.children.first()
+                        var userId = userSnapshot.child("id").getValue(String::class.java).orEmpty()
+                        val role = userSnapshot.child("role").getValue(String::class.java).orEmpty()
+                            .ifEmpty { "dentist" }
+
+                        loggedInDentistUsername = username
+                        loggedInDentistUserId = snapshot.children.first().key // Get user ID
+                        //getUserIdFromFirebase(username) // Fetch and store user ID
+                        userId = loggedInDentistUserId.toString()
+
+                        Log.d(
+                            "LoginDentistFragment",
+                            "loggedInDentistUserId is: $loggedInDentistUserId"
+                        )
+                        Log.d("LoginDentistFragment", "userId is: $userId")
+
+                        val biometricAuthenticator = BiometricAuthenticator(requireActivity(), {
+                            Log.d(
+                                "LoginDentistFragment",
+                                "Biometric authentication successful for user: $username"
+                            )
+
+                            isBiometricLogin = true
+                            Log.d("LoginDentistFragment", "isBiometricLogin: $isBiometricLogin")
+
+                            val jwtToken = generateJwtToken(userId, role)
+                            Log.d("LoginDentistFragment", "JWT Token generated: $jwtToken")
+
+                            Log.d(
+                                "LoginDentistFragment",
+                                "Navigating to client menu after successful authentication"
+                            )
+                            findNavController().navigate(R.id.action_nav_login_dentist_to_nav_menu_dentist)
+                        }, { errorMessage ->
+                            showToast(errorMessage)
+                            Log.e(
+                                "LoginDentistFragment",
+                                "Biometric authentication error: $errorMessage"
+                            )
+                        })
+
+                        Log.d("LoginDentistFragment", "Starting biometric authentication process")
+                        biometricAuthenticator.authenticate()
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        Log.e("LoginDentistFragment", "Database error: ${error.message}")
+                        showToast("Error: Database connection failed.")
+                    }
+                })
+        }else {
+            showToast("No Internet Connection!")
+
+
+        }
     }
 
     private fun showToast(message: String) {
@@ -223,6 +314,7 @@ class LoginDentistFragment : Fragment() {
                       //  Log.d("LoginDentistFragment", "JWT Token generated: $jwtToken")
 
                         Toast.makeText(requireContext(), "Login successful!", Toast.LENGTH_SHORT).show()
+                        saveUserToLocalDatabase(userId, username, password, role)
                         findNavController().navigate(R.id.action_nav_login_dentist_to_nav_menu_dentist)
                     } else {
                         showToast("Incorrect password.")
@@ -293,5 +385,46 @@ class LoginDentistFragment : Fragment() {
             InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
         }
         binding.etxtPassword.setSelection(binding.etxtPassword.text.length)
+    }
+
+    // Offline login using local Room database
+    private fun loginUserOffline(username: String, password: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val user = appDatabase.userDao()?.getUserByUsername(username)
+            if (user != null) {
+                if (password == user.password) { // Ensure password check logic matches your setup
+                    loggedInClientUsername = username
+                    loggedInClientUserId = user.userId // Get userId from the User1 object
+                    withContext(Dispatchers.Main) {
+                        showToast("Offline login successful!")
+                        findNavController().navigate(R.id.action_nav_login_client_to_nav_menu_client)
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        showToast("Incorrect password.")
+                    }
+                }
+            } else {
+                withContext(Dispatchers.Main) {
+                    showToast("User not found.")
+                }
+            }
+        }
+    }
+
+
+    // Check network connectivity
+    private fun isOnline(): Boolean {
+        val connectivityManager = requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connectivityManager.activeNetworkInfo
+        return networkInfo != null && networkInfo.isConnected
+    }
+
+    private fun saveUserToLocalDatabase(userId: String, username: String, password: String, role: String) {
+        val user = User1(userId = userId, username = username, password = password, role = role)
+        CoroutineScope(Dispatchers.IO).launch {
+            appDatabase.userDao()?.insertUser(user)
+            Log.d("LoginClientFragment", "User saved to local database: $username")
+        }
     }
 }

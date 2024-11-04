@@ -2,8 +2,7 @@ package com.example.opsc7312poepart2_code.ui.login_client
 
 import android.content.Context
 import android.content.Intent
-import android.hardware.biometrics.BiometricPrompt
-import android.os.Build
+import android.net.ConnectivityManager
 import android.os.Bundle
 import android.text.InputType
 import android.util.Base64
@@ -14,10 +13,12 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import androidx.room.Room
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.example.opsc7312poepart2_code.ui.AppDatabase
 import com.example.opsc7312poepart2_code.ui.BiometricAuthenticator
-import com.example.opsc7312poepart2_code.ui.login_dentist.LoginDentistFragment.Companion.loggedInDentistUserId
+import com.example.opsc7312poepart2_code.ui.User1
 import com.example.poe2.R
 import com.example.poe2.databinding.FragmentLoginClientBinding
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -29,6 +30,10 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 import java.util.Date
 
@@ -43,7 +48,7 @@ class LoginClientFragment : Fragment() {
 
     private val RC_SIGN_IN = 9001
     private lateinit var mGoogleSignInClient: com.google.android.gms.auth.api.signin.GoogleSignInClient
-
+    private lateinit var appDatabase: AppDatabase
     private var passwordVisible = false // Password visibility state
 
     companion object {
@@ -54,9 +59,13 @@ class LoginClientFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
+
         _binding = FragmentLoginClientBinding.inflate(inflater, container, false)
         val root: View = binding.root
-
+        appDatabase = Room.databaseBuilder(
+            requireContext(),
+            AppDatabase::class.java, "app_database"
+        ).build()
         // Initialize Firebase Database and Auth
         database = FirebaseDatabase.getInstance()
         dbReference = database.getReference("clients")
@@ -72,8 +81,17 @@ class LoginClientFragment : Fragment() {
             // Log.d("LoginClientFragment", "Login button clicked")
 
             if (username.isNotEmpty() && password.isNotEmpty()) {
+
                 // Log.d("LoginClientFragment", "Attempting to login user: $username")
                 loginUser(username, password)
+
+                Log.d("LoginClientFragment", "Attempting to login user: $username")
+                if (isOnline()) {
+                    loginUser(username, password)
+                }else {
+                    loginUserOffline(username, password)
+                }
+
             } else {
                 showToast("Please enter both username and password.")
                 // Log.d("LoginClientFragment", "Username or password was empty")
@@ -118,12 +136,24 @@ class LoginClientFragment : Fragment() {
 
     // Initiate Google Sign-In
     private fun signIn() {
+
         // Log.d("LoginClientFragment", "Starting Google Sign-In")
         val signInIntent = mGoogleSignInClient.signInIntent
         startActivityForResult(signInIntent, RC_SIGN_IN)
+
+        if (isOnline()) {
+        Log.d("LoginClientFragment", "Starting Google Sign-In")
+        val signInIntent = mGoogleSignInClient.signInIntent
+        startActivityForResult(signInIntent, RC_SIGN_IN)
+      } else {
+            showToast("No Internet Connection!")
+
+        }
+
     }
 
     private fun initiateBiometricLogin() {
+        if (isOnline()) {
         val username = binding.etxtUsername.text.toString().trim()
 
         if (username.isEmpty()) {
@@ -176,6 +206,11 @@ class LoginClientFragment : Fragment() {
                     showToast("Error: Database connection failed.")
                 }
             })
+
+         } else {
+            showToast("No Internet Connection!")
+        }
+
     }
 
     private fun showToast(message: String) {
@@ -234,7 +269,16 @@ class LoginClientFragment : Fragment() {
                         findNavController().navigate(R.id.action_nav_login_client_to_nav_menu_client)
 
                         val jwtToken = generateJwtToken(userId, role)
+
                         // Log.d("LoginClientFragment", "JWT Token generated: $jwtToken")
+
+                        saveToken(jwtToken) // Save the generated token
+                        Log.d("LoginClientFragment", "JWT Token generated: $jwtToken")
+
+                        Toast.makeText(requireContext(), "Login successful!", Toast.LENGTH_SHORT).show()
+                        saveUserToLocalDatabase(userId, username, password, role)
+                        findNavController().navigate(R.id.action_nav_login_client_to_nav_menu_client)
+
                     } else {
                         showToast("Invalid password. Please try again.")
                         // Log.e("LoginClientFragment", "Invalid password for user $username")
@@ -296,4 +340,45 @@ class LoginClientFragment : Fragment() {
         }
         binding.etxtPassword.setSelection(binding.etxtPassword.text.length) // Move cursor to the end of the text
     }
+
+    // Offline login using local Room database
+    private fun loginUserOffline(username: String, password: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val user = appDatabase.userDao()?.getUserByUsername(username)
+            if (user != null) {
+                if (password == user.password) { // Ensure password check logic matches your setup
+                    loggedInClientUsername = username
+                    loggedInClientUserId = user.userId // Get userId from the User1 object
+                    withContext(Dispatchers.Main) {
+                        showToast("Offline login successful!")
+                        findNavController().navigate(R.id.action_nav_login_client_to_nav_menu_client)
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        showToast("Incorrect password.")
+                    }
+                }
+            } else {
+                withContext(Dispatchers.Main) {
+                    showToast("User not found.")
+                }
+            }
+        }
+    }
+
+
+    // Check network connectivity
+    private fun isOnline(): Boolean {
+        val connectivityManager = requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connectivityManager.activeNetworkInfo
+        return networkInfo != null && networkInfo.isConnected
+    }
+    private fun saveUserToLocalDatabase(userId: String, username: String, password: String, role: String) {
+        val user = User1(userId = userId, username = username, password = password, role = role)
+        CoroutineScope(Dispatchers.IO).launch {
+            appDatabase.userDao()?.insertUser(user)
+            Log.d("LoginClientFragment", "User saved to local database: $username")
+        }
+    }
+
 }

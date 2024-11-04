@@ -1,6 +1,7 @@
 package com.example.poe2.ui.menu_client
 
 import android.content.Context
+import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -115,19 +116,39 @@ class MenuClientFragment : Fragment() {
             navigateTo(R.id.action_nav_menu_client_to_nav_book_app_client1)
         }
         ibtnSettings.setOnClickListener {
-            navigateTo(R.id.action_nav_menu_client_to_nav_settings_client)
+
+            if (isOnline()) {
+                navigateTo(R.id.action_nav_menu_client_to_nav_settings_client)
+            } else {
+                showToast("No Internet Connection!")
+            }
         }
         ibtnCalendar.setOnClickListener {
             navigateTo(R.id.action_nav_menu_client_to_nav_calendar_client)
         }
         ibtnNotifications.setOnClickListener {
-            navigateTo(R.id.action_nav_menu_client_to_nav_notifications_client)
+
+            if (isOnline()) {
+                navigateTo(R.id.action_nav_menu_client_to_nav_notifications_client)
+            } else {
+                showToast("No Internet Connection!")
+            }
         }
         ibtnMaps.setOnClickListener {
-            navigateTo(R.id.action_nav_menu_client_to_nav_maps_client)
+
+            if (isOnline()) {
+                navigateTo(R.id.action_nav_menu_client_to_nav_maps_client)
+            } else {
+                showToast("No Internet Connection!")
+            }
         }
         ibtnHealthzone.setOnClickListener {
-            navigateTo(R.id.action_nav_menu_client_to_nav_healthzone)
+
+            if (isOnline()) {
+                navigateTo(R.id.action_nav_menu_client_to_nav_healthzone)
+            } else {
+                showToast("No Internet Connection!")
+            }
         }
     }
 
@@ -148,6 +169,9 @@ class MenuClientFragment : Fragment() {
     }
 
     private fun fetchNotifications() {
+        // Ensure the fragment is currently attached to an activity
+        if (!isAdded) return
+
         val sharedPref = requireActivity().getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
         val token = sharedPref.getString("jwt_token", null)
         val authToken = token?.let { "$it" }
@@ -162,9 +186,15 @@ class MenuClientFragment : Fragment() {
             return
         }
 
-        apiService.getPatientNotifications(authToken, Id!!, fcmToken!!).enqueue(object : Callback<NotificationsResponse> {
+        apiService.getPatientNotifications(authToken, Id, fcmToken!!).enqueue(object : Callback<NotificationsResponse> {
             override fun onResponse(call: Call<NotificationsResponse>, response: Response<NotificationsResponse>) {
+
               //  Log.d("NotificationsClient", "API Response Code: ${response.code()}")
+                // Check if the fragment is still attached before updating the UI
+                if (!isAdded) return
+
+               // Log.d("NotificationsClient", "API Response Code: ${response.code()}")
+
                 if (response.isSuccessful && response.body() != null) {
                     val notifications = response.body()!!.notifications
                   //  Log.d("NotificationsClient", "Notifications fetched: ${notifications.size}")
@@ -178,14 +208,31 @@ class MenuClientFragment : Fragment() {
             }
 
             override fun onFailure(call: Call<NotificationsResponse>, t: Throwable) {
+
              //   Log.e("NotificationsClient", "API call failed: ${t.message}")
+
+                // Check if the fragment is still attached before logging errors
+                if (!isAdded) return
+               // Log.e("NotificationsClient", "API call failed: ${t.message}")
+
             }
         })
     }
-
     private fun updateNotificationCount(count: Int) {
+        if (!isAdded) return
         txtNotificationCount.text = count.toString()
         txtNotificationCount.visibility = if (count > 0) View.VISIBLE else View.GONE
+    }
+
+
+    // Check network connectivity
+    private fun isOnline(): Boolean {
+        val connectivityManager = requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connectivityManager.activeNetworkInfo
+        return networkInfo != null && networkInfo.isConnected
+    }
+    private fun showToast(message: String) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
     }
 }
 

@@ -1,7 +1,9 @@
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
     id("com.google.gms.google-services")
+    id("kotlin-kapt")
 }
 
 android {
@@ -44,6 +46,7 @@ android {
         viewBinding = true
         buildConfig = true
     }
+
     dependencies {
         // AndroidX and Material Components
         implementation(libs.androidx.core.ktx.v1101)
@@ -137,8 +140,6 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.firebase.functions.ktx)
-    implementation(libs.core)
-    implementation(libs.androidx.legacy.support.v4)
     androidTestImplementation(libs.junit.junit)
     androidTestImplementation(libs.junit.junit)
 
@@ -149,9 +150,12 @@ dependencies {
     // Biometric library for Android
     implementation ("androidx.biometric:biometric:1.1.0")
 
-    testImplementation ("junit:junit:4.13.2")
-    testImplementation ("org.mockito:mockito-core:3.12.4")
-    androidTestImplementation ("org.mockito:mockito-android:3.12.4")
-    androidTestImplementation ("androidx.test:core:1.4.0")
-    androidTestImplementation ("androidx.test.ext:junit:1.1.3")
+    // Room dependencies
+    implementation ("androidx.room:room-runtime:2.5.2")
+
+    kapt("androidx.room:room-compiler:2.5.2")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+
 }
