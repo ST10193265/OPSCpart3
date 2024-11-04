@@ -12,22 +12,18 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.example.poe2.MainActivity
+class NotificationReceiver : BroadcastReceiver() {
 
-class NotificationReceiver(
-    private val notificationsList: MutableList<String>,
-    private val notificationsAdapter: ArrayAdapter<String>
-
-) : BroadcastReceiver() {
-
+    // Override the onReceive method to handle received broadcasts
     override fun onReceive(context: Context, receivedIntent: Intent) {
         val message = receivedIntent.getStringExtra("message")
         val timestamp = receivedIntent.getLongExtra("timestamp", 0L)
 
         Log.d("NotificationReceiver", "Broadcast received with message: $message at timestamp: $timestamp")
 
+        // Check if the message is not null and handle the notification
         if (message != null) {
-            notificationsList.add(message)
-            notificationsAdapter.notifyDataSetChanged()
+            NotificationsManager.addNotification(message) // Update the notifications manager
             Toast.makeText(context, "New notification received", Toast.LENGTH_SHORT).show()
             showNotification(context, message)
         } else {
@@ -51,11 +47,11 @@ class NotificationReceiver(
 
         // Create an intent to open your app when the notification is tapped
         val intent = Intent(context, MainActivity::class.java) // Replace with your main activity
-        val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
         // Build the notification
         val notificationBuilder = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(android.R.drawable.ic_dialog_info) // Replace with your app's icon
             .setContentTitle("New Notification")
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -66,3 +62,18 @@ class NotificationReceiver(
         notificationManager.notify(System.currentTimeMillis().toInt(), notificationBuilder.build())
     }
 }
+object NotificationsManager {
+    private val notificationsList: MutableList<String> = mutableListOf()
+    lateinit var notificationsAdapter: ArrayAdapter<String>
+
+    fun addNotification(message: String) {
+        notificationsList.add(message)
+        notificationsAdapter.notifyDataSetChanged() // Notify the adapter to update the UI
+    }
+
+    fun setAdapter(adapter: ArrayAdapter<String>) {
+        notificationsAdapter = adapter
+    }
+}
+
+
