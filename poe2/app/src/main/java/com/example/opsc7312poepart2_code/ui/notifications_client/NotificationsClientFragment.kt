@@ -206,6 +206,16 @@ class NotificationsClientFragment : Fragment() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        val intentFilter = IntentFilter("com.example.opsc7312poepart2_code.ACTION_NOTIFICATION_RECEIVED")
+        requireContext().registerReceiver(notificationReceiver, intentFilter)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        requireContext().unregisterReceiver(notificationReceiver)
+    }
 
 }
 
