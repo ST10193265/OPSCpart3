@@ -45,8 +45,8 @@ jobs:
       - name: Clean project
         run: cd poe2 && ./gradlew clean
 
-      - name: Build with Gradle
-        run: cd poe2 && ./gradlew build --stacktrace --warning-mode=none --no-daemon
+      - name: Assemble Debug Build
+        run: cd poe2 && ./gradlew assembleDebug --stacktrace --no-daemon
 
       - name: Run Unit Tests
         run: cd poe2 && ./gradlew test --stacktrace
