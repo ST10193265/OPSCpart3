@@ -22,6 +22,7 @@ import androidx.navigation.fragment.findNavController
 import com.android.volley.Request
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
+import com.example.poe2.NotificationReceiver
 import org.json.JSONObject
 import com.example.opsc7312poepart2_code.ui.ApiClient
 import com.example.opsc7312poepart2_code.ui.ApiService
@@ -35,7 +36,6 @@ import com.google.firebase.messaging.FirebaseMessaging
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-
 class NotificationsClientFragment : Fragment() {
 
     private var _binding: FragmentNotificationsClientBinding? = null
@@ -45,6 +45,9 @@ class NotificationsClientFragment : Fragment() {
     private lateinit var notificationsAdapter: ArrayAdapter<String>
     private val notificationsList = mutableListOf<String>()
     private var fcmToken: String? = null
+
+    // Define the notification receiver
+    private lateinit var notificationReceiver: NotificationReceiver
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
@@ -67,6 +70,9 @@ class NotificationsClientFragment : Fragment() {
         )
         binding.notificationsListView.adapter = notificationsAdapter
 
+        // Initialize the NotificationReceiver
+        notificationReceiver = NotificationReceiver(notificationsList, notificationsAdapter)
+
         // Retrieve FCM token in a background thread
         fetchFcmToken()
 
@@ -79,15 +85,23 @@ class NotificationsClientFragment : Fragment() {
         return binding.root
     }
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         // Register the broadcast receiver for real-time updates
+        registerNotificationReceiver()
+    }
+
+    private fun registerNotificationReceiver() {
         val intentFilter = IntentFilter("FCM_NOTIFICATION")
         try {
+            // Check the API level and register the receiver accordingly
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                requireContext().registerReceiver(notificationReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED)
+                requireContext().registerReceiver(
+                    notificationReceiver,
+                    intentFilter,
+                    Context.RECEIVER_NOT_EXPORTED
+                )
             } else {
                 requireContext().registerReceiver(notificationReceiver, intentFilter)
             }
@@ -96,7 +110,6 @@ class NotificationsClientFragment : Fragment() {
             Log.e("NotificationsClient", "Error registering receiver: ${e.message}")
         }
     }
-
 
     private fun fetchFcmToken() {
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
@@ -153,47 +166,6 @@ class NotificationsClientFragment : Fragment() {
         } else {
             Log.e("NotificationsClient", "Cannot fetch notifications: Missing UserId, AuthToken, or FCM Token")
         }
-
-    }
-
-    private val notificationReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, receivedIntent: Intent) {
-            val message = receivedIntent.getStringExtra("message")
-            val timestamp = receivedIntent.getLongExtra("timestamp", 0L)
-
-            Log.d("NotificationsClientFragment", "Broadcast received with message: $message at timestamp: $timestamp")
-
-            if (message != null) {
-                notificationsList.add(message)
-                notificationsAdapter.notifyDataSetChanged()
-                Toast.makeText(context, "New notification received", Toast.LENGTH_SHORT).show()
-                showNotification(context, message)
-            } else {
-                Log.e("NotificationsClientFragment", "Received null message in broadcast")
-            }
-        }
-    }
-
-    private fun showNotification(context: Context, message: String) {
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                "notification_channel_id",
-                "Notifications",
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-            notificationManager.createNotificationChannel(channel)
-        }
-
-        val notificationBuilder = NotificationCompat.Builder(context, "notification_channel_id")
-            .setSmallIcon(R.drawable.redcircle) // Replace with your notification icon
-            .setContentTitle("New Notification")
-            .setContentText(message)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setAutoCancel(true)
-
-        notificationManager.notify(System.currentTimeMillis().toInt(), notificationBuilder.build())
     }
 
     override fun onDestroyView() {
@@ -208,14 +180,19 @@ class NotificationsClientFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
-        val intentFilter = IntentFilter("com.example.opsc7312poepart2_code.ACTION_NOTIFICATION_RECEIVED")
-        requireContext().registerReceiver(notificationReceiver, intentFilter)
+        // Optionally register the receiver again if needed
+        // registerNotificationReceiver() // Uncomment if you want to re-register on start
     }
 
     override fun onStop() {
         super.onStop()
-        requireContext().unregisterReceiver(notificationReceiver)
+        try {
+            requireContext().unregisterReceiver(notificationReceiver)
+        } catch (e: IllegalArgumentException) {
+            Log.e("NotificationsClient", "Receiver not registered: ${e.message}")
+        }
     }
-
 }
+
+
 
