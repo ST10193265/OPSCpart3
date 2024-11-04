@@ -55,7 +55,7 @@ class NotificationReceiver(
 
         // Build the notification
         val notificationBuilder = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(android.R.drawable.ic_dialog_info) // Replace with your app's icon
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle("New Notification")
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
